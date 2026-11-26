@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../_build/code-editor-diff-angular/worker",
+    "lib": [
+      "ES2025",
+      "ESNext.Disposable",
+      "WebWorker"
+    ]
+  },
+  "include": [
+    "src/app/workers/**/*.ts"
+  ]
+}

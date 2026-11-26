@@ -1,0 +1,26 @@
+<!--
+@license
+Copyright (c) Noldova.
+
+This source code is licensed under the license found in the
+LICENSE file in the root directory of this source tree.
+-->
+<div class="nol-find-bar-row">
+  <input #find nol-text-field class="nol-find-bar-field" type="text" [attr.aria-label]="resources.findLabel" [placeholder]="resources.findLabel"
+    autocomplete="off" spellcheck="false" (input)="onText()" (keydown)="onFindKey($event)" />
+  <button nol-icon-button type="button" icon="match_case" [label]="resources.matchCaseLabel" [pressed]="caseSensitive()" (click)="toggle(caseSensitive)"></button>
+  <button nol-icon-button type="button" icon="match_word" [label]="resources.wholeWordLabel" [pressed]="wholeWord()" (click)="toggle(wholeWord)"></button>
+  <button nol-icon-button type="button" icon="regular_expression" [label]="resources.regexLabel" [pressed]="regex()" (click)="toggle(regex)"></button>
+  <span class="nol-find-bar-status" role="status">{{ status() }}</span>
+  <button nol-icon-button type="button" icon="arrow_upward" [label]="resources.previousMatchLabel" (click)="previous.emit()"></button>
+  <button nol-icon-button type="button" icon="arrow_downward" [label]="resources.nextMatchLabel" (click)="next.emit()"></button>
+  <button nol-icon-button type="button" icon="close" [label]="resources.closeLabel" (click)="dismiss.emit()"></button>
+</div>
+@if (replacing()) {
+  <div class="nol-find-bar-row">
+    <input #replaceField nol-text-field class="nol-find-bar-field" type="text" [attr.aria-label]="resources.replaceLabel" [placeholder]="resources.replaceLabel"
+      autocomplete="off" spellcheck="false" (input)="onReplacement()" (keydown)="onReplaceKey($event)" />
+    <button nol-icon-button type="button" icon="find_replace" [label]="resources.replaceOneLabel" (click)="replace.emit(replacement())"></button>
+    <button nol-icon-button type="button" icon="done_all" [label]="resources.replaceAllLabel" (click)="replaceAll.emit(replacement())"></button>
+  </div>
+}

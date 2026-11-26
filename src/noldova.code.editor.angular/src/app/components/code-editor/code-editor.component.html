@@ -1,0 +1,65 @@
+<!--
+@license
+Copyright (c) Noldova.
+
+This source code is licensed under the license found in the
+LICENSE file in the root directory of this source tree.
+-->
+<div #scroller class="nol-code-editor-scroller" (scroll)="onScroll()" (mousedown)="onMouseDown($event)" (dragover)="onDragOver($event)"
+  (dragleave)="dropCaret.set(null)" (drop)="onDrop($event)">
+  <div class="nol-code-editor-sizer" [style.height.px]="height()" [style.--nol-code-editor-digits]="digits()">
+    <div class="nol-code-editor-gutter" aria-hidden="true">
+      <div class="nol-code-editor-numbers" [style.transform]="'translateY(' + offset() + 'px)'">
+        @for (row of rows(); track $index) {
+          <div class="nol-code-editor-line-number" [class]="resources.rowClass(row.kind)">@for (paint of row.paints; track $index) {<span class="nol-code-editor-paint" [style.background]="paint"></span>}@if (paired()) {<span class="nol-code-editor-number">{{ row.otherNumber }}</span>}<span class="nol-code-editor-number">{{ row.number }}</span>@if (marked()) {<span class="nol-code-editor-sign" [style.color]="row.marker?.color ?? null">{{ row.marker?.text ?? resources.empty }}</span>}@if (foldable()) {<span class="nol-code-editor-fold-toggle">@if (row.fold; as fold) {<span class="nol-code-editor-fold-icon material-symbols-rounded" (mousedown)="onFoldToggle($event, fold)">{{ fold.collapsed ? resources.foldClosedIcon : resources.foldOpenIcon }}</span>}</span>}</div>
+        }
+      </div>
+    </div>
+    @for (shape of barShapes(); track $index) {
+      <div class="nol-code-editor-bar" [style.top.px]="shape.top" [style.left.px]="barLeft()" [style.width.px]="barWidth()" [style.background]="shape.bar.background"
+        [style.color]="shape.bar.color" (mousedown)="$event.stopPropagation()">@if (shape.bar.icon; as icon) {<span class="nol-code-editor-bar-icon material-symbols-rounded" aria-hidden="true">{{ icon }}</span>}<span class="nol-code-editor-bar-note">{{ shape.bar.note }}</span>@for (action of shape.bar.actions; track action.id) {<button type="button" class="nol-code-editor-action" (click)="onAction(shape.bar, action)">@if (action.icon; as icon) {<span class="nol-code-editor-action-icon material-symbols-rounded" aria-hidden="true">{{ icon }}</span>}{{ action.label }}</button>}</div>
+    }
+    <div #content class="nol-code-editor-content">
+      @if (rowed()) {
+        <div class="nol-code-editor-rows" aria-hidden="true" [style.transform]="'translateY(' + offset() + 'px)'">
+          @for (row of rows(); track $index) {
+            <div class="nol-code-editor-row" [class]="resources.rowClass(row.kind)">@for (paint of row.paints; track $index) {<div class="nol-code-editor-paint" [style.background]="paint"></div>}</div>
+          }
+        </div>
+        @for (shape of changeShapes(); track $index) {
+          <div class="nol-code-editor-change" [style.top.px]="shape.top" [style.left.px]="shape.left" [style.width.px]="shape.width" [style.background]="shape.background"></div>
+        }
+      }
+      @for (shape of selectionShapes(); track $index) {
+        <div class="nol-code-editor-selection" [style.top.px]="shape.top" [style.left.px]="shape.left" [style.width.px]="shape.width" [style.height.px]="shape.height"></div>
+      }
+      @for (shape of matchShapes(); track $index) {
+        <div class="nol-code-editor-match" [class.nol-code-editor-match-current]="shape.current" [style.top.px]="shape.top" [style.left.px]="shape.left"
+          [style.width.px]="shape.width"></div>
+      }
+      <div class="nol-code-editor-lines" aria-hidden="true" [style.transform]="'translateY(' + offset() + 'px)'">
+        @for (row of rows(); track $index) {
+          <div class="nol-code-editor-line" [class.nol-code-editor-line-fold]="row.kind === foldKind">@for (segment of row.segments; track $index) {<span [class]="resources.segmentClass(tokenTypes, segment)">{{ row.text.slice(segment.start, segment.end) }}</span>}</div>
+        }
+      </div>
+      @for (shape of caretShapes(); track $index) {
+        <div class="nol-code-editor-caret" [style.top.px]="shape.top" [style.left.px]="shape.left" [style.height.px]="shape.height"></div>
+      }
+      @if (dropCaret(); as shape) {
+        <div class="nol-code-editor-drop-caret" [style.top.px]="shape.top" [style.left.px]="shape.left" [style.height.px]="shape.height"></div>
+      }
+      @if (composing(); as text) {
+        <span class="nol-code-editor-composition" [style.top.px]="primaryCaret().top" [style.left.px]="primaryCaret().left">{{ text }}</span>
+      }
+      <textarea #input class="nol-code-editor-input" [attr.aria-label]="label()" [readOnly]="readOnly()" autocapitalize="off" autocomplete="off" spellcheck="false"
+        wrap="off" [style.top.px]="primaryCaret().top" [style.left.px]="primaryCaret().left" (keydown)="onKeyDown($event)" (beforeinput)="onBeforeInput($event)"
+        (compositionstart)="onCompositionStart()" (compositionupdate)="onCompositionUpdate($event)" (compositionend)="onCompositionEnd($event)"
+        (paste)="onPaste($event)" (copy)="onCopy($event)" (cut)="onCut($event)" (focus)="focused.set(true)" (blur)="onBlur()"></textarea>
+      <span #probe class="nol-code-editor-probe" aria-hidden="true">0</span>
+    </div>
+  </div>
+</div>
+@if (searchOpen()) {
+  <noldova-find-bar [seed]="searchSeed()" [status]="searchStatus()" [replacing]="replaceOpen()" (queryChange)="onQuery($event)" (next)="findNext()"
+    (previous)="findPrevious()" (replace)="replaceOne($event)" (replaceAll)="replaceEvery($event)" (dismiss)="closeSearch()" />
+}

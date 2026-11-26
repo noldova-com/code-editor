@@ -1,0 +1,52 @@
+/**
+ * @license
+ * Copyright (c) Noldova.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+:host {
+  display: flex;
+  position: absolute;
+  top: 0;
+  inset-inline-end: var(--nol-space-4);
+  z-index: 3;
+  flex-direction: column;
+  gap: var(--nol-space-1);
+  box-sizing: border-box;
+  max-width: calc(100% - var(--nol-space-4) * 2);
+  padding: var(--nol-space-1) var(--nol-space-2);
+  border: var(--nol-border-width) solid var(--nol-widget-border);
+  border-block-start: none;
+  border-end-start-radius: var(--nol-radius-small);
+  border-end-end-radius: var(--nol-radius-small);
+  background-color: var(--nol-hover-widget);
+  box-shadow: var(--nol-shadow-large);
+  color: var(--nol-text);
+  font-family: var(--nol-font-sans);
+  font-size: var(--nol-text-label);
+  line-height: var(--nol-line-label);
+  cursor: default;
+}
+
+.nol-find-bar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nol-space-1);
+  min-width: 0;
+}
+
+.nol-find-bar-field {
+  flex: 1 1 auto;
+  width: 14rem;
+  min-width: 0;
+}
+
+.nol-find-bar-status {
+  flex: none;
+  min-width: 5rem;
+  color: var(--nol-text-muted);
+  text-align: center;
+  white-space: nowrap;
+}

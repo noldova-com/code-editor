@@ -1,0 +1,120 @@
+/**
+ * @license
+ * Copyright (c) Noldova.
+ *
+ * This source code is licensed under the license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+:host {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  gap: var(--nol-merge-editor-gap, 0);
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--nol-code);
+}
+
+.nol-merge-editor-sides {
+  display: flex;
+  flex: 1 1 0;
+  gap: var(--nol-merge-editor-gap, 0);
+  min-height: 0;
+}
+
+.nol-merge-editor-side,
+.nol-merge-editor-output {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.nol-merge-editor-side {
+  flex: 1 1 0;
+}
+
+.nol-merge-editor-output {
+  flex: 1.1 1 0;
+}
+
+.nol-merge-editor-side + .nol-merge-editor-side {
+  border-inline-start: var(--nol-border-width) solid var(--nol-card-border);
+}
+
+:host(.nol-merge-editor-panels) {
+  background-color: transparent;
+}
+
+:host(.nol-merge-editor-panels) .nol-merge-editor-side,
+:host(.nol-merge-editor-panels) .nol-merge-editor-output {
+  border: var(--nol-border-width) solid var(--nol-card-border);
+  border-radius: var(--nol-radius-large);
+  background-color: var(--nol-panel);
+}
+
+.nol-merge-editor-pane,
+.nol-merge-editor-result {
+  --nol-code-editor-font-size: 0.8125rem;
+  --nol-code-editor-line-height: 1.25rem;
+  --nol-code-editor-gutter-width: 2.75rem;
+  --nol-code-editor-gutter-end: 0.75rem;
+  --nol-code-editor-signs: none;
+  --nol-code-editor-inset: 0;
+}
+
+.nol-merge-editor-pane,
+.nol-merge-editor-result {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.nol-merge-editor-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--nol-space-1);
+  padding: var(--nol-space-1) var(--nol-space-2);
+  border-block: var(--nol-border-width) solid var(--nol-card-border);
+  background-color: var(--nol-panel);
+}
+
+.nol-merge-editor-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--nol-text-muted);
+  font-family: var(--nol-font-sans);
+  font-size: var(--nol-text-label);
+  line-height: var(--nol-line-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nol-merge-editor-note {
+  margin: 0;
+  padding: var(--nol-space-2);
+  border-block-end: var(--nol-border-width) solid var(--nol-card-border);
+  background-color: var(--nol-warning-background);
+  color: var(--nol-text);
+  font-family: var(--nol-font-sans);
+  font-size: var(--nol-text-label);
+  line-height: var(--nol-line-label);
+}
+
+.nol-merge-editor-failure {
+  border-block-end: none;
+  background-color: var(--nol-error-background);
+}
+
+.nol-merge-editor-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

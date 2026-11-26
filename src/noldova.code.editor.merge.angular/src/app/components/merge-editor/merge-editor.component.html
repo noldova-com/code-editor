@@ -1,0 +1,58 @@
+<!--
+@license
+Copyright (c) Noldova.
+
+This source code is licensed under the license found in the
+LICENSE file in the root directory of this source tree.
+-->
+@if (opening().failure; as failure) {
+  <p class="nol-merge-editor-note nol-merge-editor-failure" role="alert">{{ failure.message }}</p>
+} @else if (opening().merge; as merge) {
+  <div class="nol-merge-editor-sides">
+    <div class="nol-merge-editor-side">
+      <ng-content select="[nolMergeOursHead]" />
+      <noldova-code-editor class="nol-merge-editor-pane" [document]="oursDocument()" [history]="oursHistory()" [language]="language()" [label]="oursLabel()"
+        [readOnly]="true" [decorations]="oursDecorations()" (barAction)="onSideAction($event, choices.Ours)" />
+    </div>
+    @if (showBase()) {
+      <div class="nol-merge-editor-side nol-merge-editor-base">
+        <ng-content select="[nolMergeBaseHead]" />
+        <noldova-code-editor class="nol-merge-editor-pane" [document]="baseDocument()" [history]="baseHistory()" [language]="language()" [label]="resources.baseLabel"
+          [readOnly]="true" [decorations]="baseDecorations()" />
+      </div>
+    }
+    <div class="nol-merge-editor-side">
+      <ng-content select="[nolMergeTheirsHead]" />
+      <noldova-code-editor class="nol-merge-editor-pane" [document]="theirsDocument()" [history]="theirsHistory()" [language]="language()" [label]="theirsLabel()"
+        [readOnly]="true" [decorations]="theirsDecorations()" (barAction)="onSideAction($event, choices.Theirs)" />
+    </div>
+  </div>
+  @if (toolbar()) {
+    <div class="nol-merge-editor-bar">
+      <span class="nol-merge-editor-summary">{{ summary() }}</span>
+      <button nol-icon-button type="button" icon="arrow_upward" [label]="resources.previousConflictLabel" (click)="previousConflict()"></button>
+      <button nol-icon-button type="button" icon="arrow_downward" [label]="resources.nextConflictLabel" (click)="nextConflict()"></button>
+      <button nol-button type="button" [variant]="secondary" [size]="compact" [disabled]="!canChoose()" (click)="choose(choices.Ours)">{{ resources.acceptOursLabel }}</button>
+      <button nol-button type="button" [variant]="secondary" [size]="compact" [disabled]="!canChoose()" (click)="choose(choices.Theirs)">{{ resources.acceptTheirsLabel }}</button>
+      <button nol-button type="button" [variant]="secondary" [size]="compact" [disabled]="!canChoose()" (click)="choose(choices.BothOursFirst)">{{ resources.acceptBothOursFirstLabel }}</button>
+      <button nol-button type="button" [variant]="secondary" [size]="compact" [disabled]="!canChoose()" (click)="choose(choices.BothTheirsFirst)">{{ resources.acceptBothTheirsFirstLabel }}</button>
+      <button nol-button type="button" [variant]="secondary" [size]="compact" [disabled]="!canChoose()" (click)="resetActive()">{{ resources.resetLabel }}</button>
+    </div>
+  }
+  <div class="nol-merge-editor-output">
+    <ng-content select="[nolMergeResultHead]" />
+    <noldova-code-editor #result class="nol-merge-editor-result" [document]="merge.document" [history]="merge.history" [language]="language()"
+      [label]="resources.resultLabel" [readOnly]="readOnly()" [decorations]="resultDecorations()" (selectionsChange)="onSelections(merge, $event)"
+      (barAction)="onResultAction(merge, $event)" />
+  </div>
+} @else {
+  <p class="nol-merge-editor-note" role="note">{{ deletedNote() }}</p>
+  @if (survivorIsOurs()) {
+    <noldova-code-editor class="nol-merge-editor-result" [document]="oursDocument()" [history]="oursHistory()" [language]="language()" [label]="oursLabel()"
+      [readOnly]="true" />
+  } @else {
+    <noldova-code-editor class="nol-merge-editor-result" [document]="theirsDocument()" [history]="theirsHistory()" [language]="language()"
+      [label]="theirsLabel()" [readOnly]="true" />
+  }
+}
+<div class="nol-merge-editor-status" role="status">{{ announcement() }}</div>

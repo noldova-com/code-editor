@@ -1,0 +1,76 @@
+{
+  "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "analytics": false,
+    "cache": {
+      "enabled": false
+    }
+  },
+  "projects": {
+    "code-editor-merge": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": ".",
+      "prefix": "noldova",
+      "architect": {
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "code-editor-merge:build:development",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "runnerConfig": "vitest.config.ts",
+            "browsers": [
+              "chromiumHeadless"
+            ],
+            "browserViewport": "1280x800",
+            "include": [
+              "tests/**/*.spec.ts"
+            ],
+            "providersFile": "tests/test-providers.ts",
+            "setupFiles": [
+              "tests/kit-stylesheet.setup.ts"
+            ],
+            "watch": false,
+            "coverage": true,
+            "coverageInclude": [
+              "src/**/*.ts"
+            ],
+            "coverageExclude": [
+              "src/app/enums/**"
+            ],
+            "coverageReporters": [
+              "text",
+              "json-summary"
+            ],
+            "coverageThresholds": {
+              "statements": 100,
+              "branches": 100,
+              "functions": 100,
+              "lines": 100
+            }
+          }
+        },
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "../../_build/code-editor-merge-angular/build",
+            "tsConfig": "tsconfig.spec.json",
+            "styles": [
+              "@noldova/ui.components.angular/styles/kit.css",
+              "@noldova/ui.components.angular/styles/theme.css"
+            ]
+          },
+          "configurations": {
+            "development": {
+              "optimization": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

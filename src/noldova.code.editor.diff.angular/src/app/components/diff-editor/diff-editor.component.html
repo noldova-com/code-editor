@@ -1,0 +1,20 @@
+<!--
+@license
+Copyright (c) Noldova.
+
+This source code is licensed under the license found in the
+LICENSE file in the root directory of this source tree.
+-->
+@if (inline()) {
+  <noldova-code-editor #modified class="nol-diff-editor-pane" [document]="diff().modified" [history]="history()" [language]="language()"
+    [label]="modifiedLabel()" [readOnly]="readOnly()" [decorations]="inlineDecorations()" [folds]="folds().modified"
+    (foldToggle)="toggle($event)" (selectionsChange)="reveal(folds().modified, $event)" />
+} @else {
+  <noldova-code-editor #original class="nol-diff-editor-pane" [document]="diff().original" [history]="originalUndo()"
+    [language]="language()" [label]="originalLabel()" [readOnly]="originalReadOnly()" [decorations]="originalDecorations()" [folds]="folds().original"
+    (scrollChange)="modified.scrollTo($event)" (foldToggle)="toggle($event)" (selectionsChange)="reveal(folds().original, $event)" />
+  <noldova-code-editor #modified class="nol-diff-editor-pane" [document]="diff().modified" [history]="history()"
+    [language]="language()" [label]="modifiedLabel()" [readOnly]="readOnly()" [decorations]="modifiedDecorations()" [folds]="folds().modified"
+    (scrollChange)="original.scrollTo($event)" (foldToggle)="toggle($event)" (selectionsChange)="reveal(folds().modified, $event)" />
+}
+<div class="nol-diff-editor-status" role="status">{{ announcement() }}</div>

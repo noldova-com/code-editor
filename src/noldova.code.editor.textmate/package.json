@@ -1,0 +1,33 @@
+{
+  "name": "@noldova/code.editor.textmate",
+  "version": "__VERSION__",
+  "description": "The code editor's TextMate highlighting, through Shiki: a highlighter, a tokenizer with its grammar state, the scope to token type rules, and 33 languages a host can replace, registered through one contribution.",
+  "type": "module",
+  "main": "api/index.js",
+  "types": "api/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noldova-com/code-editor.git",
+    "directory": "src/noldova.code.editor.textmate"
+  },
+  "homepage": "https://github.com/noldova-com/code-editor#readme",
+  "bugs": {
+    "url": "https://github.com/noldova-com/code-editor/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@noldova/code.editor": "__VERSION__",
+    "@shikijs/engine-javascript": "4.5.0",
+    "@shikijs/langs": "4.5.0",
+    "@shikijs/primitive": "4.5.0"
+  },
+  "peerDependencies": {
+    "@noldova/context.collections": ">=0.0.14 <0.1.0",
+    "@noldova/context.core": ">=0.0.14 <0.1.0",
+    "@noldova/context.exceptions": ">=0.0.14 <0.1.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig-base.json",
+  "compilerOptions": {
+    "lib": ["ES2025", "ESNext.Disposable", "DOM"],
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "../../../_build/node/noldova.code.editor.textmate.tests"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@noldova/code.editor",
+  "version": "__VERSION__",
+  "description": "The code editor's framework-free core: a text model with transactions and undo, search, the language, highlighter and token type registries, the diff algorithm and background job registries, and the sliced runner its views use.",
+  "type": "module",
+  "main": "api/index.js",
+  "types": "api/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noldova-com/code-editor.git",
+    "directory": "src/noldova.code.editor"
+  },
+  "homepage": "https://github.com/noldova-com/code-editor#readme",
+  "bugs": {
+    "url": "https://github.com/noldova-com/code-editor/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "peerDependencies": {
+    "@noldova/context.collections": ">=0.0.14 <0.1.0",
+    "@noldova/context.core": ">=0.0.14 <0.1.0",
+    "@noldova/context.exceptions": ">=0.0.14 <0.1.0"
+  }
+}

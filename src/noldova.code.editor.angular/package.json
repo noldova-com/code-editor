@@ -1,0 +1,38 @@
+{
+  "name": "@noldova/code.editor.angular",
+  "version": "__VERSION__",
+  "description": "The code editor's views in Angular: the code view with its decorations, folds and inserted rows, the find bar and the diff view, styled only with the kit's tokens.",
+  "type": "module",
+  "main": "api/index.js",
+  "types": "api/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noldova-com/code-editor.git",
+    "directory": "src/noldova.code.editor.angular"
+  },
+  "homepage": "https://github.com/noldova-com/code-editor#readme",
+  "bugs": {
+    "url": "https://github.com/noldova-com/code-editor/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "test": "ngc -p tsconfig.json && playwright install --only-shell chromium && ng test"
+  },
+  "dependencies": {
+    "@noldova/code.editor": "__VERSION__",
+    "tslib": "2.8.1"
+  },
+  "peerDependencies": {
+    "@angular/common": ">=22.3.0 <23.0.0",
+    "@angular/core": ">=22.3.0 <23.0.0",
+    "@noldova/context.collections": ">=0.0.14 <0.1.0",
+    "@noldova/context.core": ">=0.0.14 <0.1.0",
+    "@noldova/context.exceptions": ">=0.0.14 <0.1.0",
+    "@noldova/ui.components.angular": ">=0.0.20 <0.1.0",
+    "rxjs": ">=7.8.2 <8.0.0"
+  }
+}
