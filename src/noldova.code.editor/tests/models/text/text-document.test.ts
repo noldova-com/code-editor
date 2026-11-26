@@ -313,12 +313,32 @@ export class TextDocumentTests {
       tasks++;
       setImmediate(task);
     };
+    let made: number = 0;
+    let closed: number = 0;
+    const original: typeof MessageChannel = globalThis.MessageChannel;
+    globalThis.MessageChannel = class CountingChannel extends original {
+      public constructor() {
+        super();
+        made++;
+        const close = this.port1.close.bind(this.port1);
+        this.port1.close = (): void => {
+          closed++;
+          close();
+        };
+      }
+    };
     setImmediate(task);
-
-    const sliced: TextDocument = await TextDocument.fromTextAsync(text);
-    opening = false;
+    let sliced: TextDocument;
+    try {
+      sliced = await TextDocument.fromTextAsync(text);
+    } finally {
+      opening = false;
+      globalThis.MessageChannel = original;
+    }
 
     Assert.areEqual(text, sliced.text());
+    Assert.areEqual(7, made);
+    Assert.areEqual(7, closed);
     Assert.isTrue(tasks >= 6, `${tasks} tasks ran during the 7 pauses.`);
   }
 
