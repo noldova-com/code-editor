@@ -3498,8 +3498,10 @@ export declare class SearchResults implements Disposable {
   /**
    * Searches lines not yet searched, for background work between frames.
    *
-   * @param hasTime Called after each line; returning false stops the work.
-   * At least one line is searched when any remains.
+   * @param hasTime Called after every 64 lines, or sooner once about 4,096
+   * characters were searched, since reading a clock costs more than
+   * searching a short line; returning false stops the work. At least one
+   * line is searched when any remains.
    * @returns True while lines remain to search.
    * @example
    * ```ts

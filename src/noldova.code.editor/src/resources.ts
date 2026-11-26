@@ -277,6 +277,8 @@ export class Resources {
   public static readonly ctrlYKey: string = "ctrl+y";
   public static readonly defaultSliceMilliseconds: number = 5;
   public static readonly searchColumnsPerMatch: number = 2;
+  public static readonly searchLinesPerClockRead: number = 64;
+  public static readonly searchCharactersPerClockRead: number = 4096;
   public static readonly surrogatePairLength: number = 2;
   public static readonly spaceCharacterKind: number = 0;
   public static readonly wordCharacterKind: number = 1;
