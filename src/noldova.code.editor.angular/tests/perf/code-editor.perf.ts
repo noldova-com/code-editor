@@ -13,7 +13,7 @@ import { TextPosition, TextSelection } from "@noldova/code.editor";
 import { TextMateTokenizer } from "@noldova/code.editor.textmate";
 import { List } from "@noldova/context.collections";
 import { createJavaScriptRegexEngine } from "@shikijs/engine-javascript";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import { EditorFixture } from "../fixtures/editor.fixture.ts";
@@ -34,6 +34,8 @@ const PLAIN: string = EditorFixture.lines(LINES);
 const CODE: string = EditorFixture.code(LINES, "let first = 0;");
 
 describe("Code editor on a 1,000,000-line document", () => {
+  afterAll(() => PerfReport.saveAsync("code-editor"));
+
   it("runs Angular in production mode, as an app's release build does", () => {
     expect(isDevMode()).toBe(false);
   });

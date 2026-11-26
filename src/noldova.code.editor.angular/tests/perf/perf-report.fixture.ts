@@ -6,17 +6,32 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { inject } from "vitest";
+import { commands } from "vitest/browser";
+
+declare module "vitest" {
+  export interface ProvidedContext {
+    perfResultsFolder: string;
+  }
+}
+
 export class PerfReport {
-  private static readonly PREFIX: string = "noldova-perf";
-  private static readonly SEPARATOR: string = "\t";
   private static readonly DIGITS: number = 1;
+  private static readonly EXTENSION: string = ".json";
+  private static readonly samples: Map<string, number[]> = new Map<string, number[]>();
 
   public static record(name: string, milliseconds: number): void {
-    console.log([PerfReport.PREFIX, name, milliseconds.toFixed(PerfReport.DIGITS)].join(PerfReport.SEPARATOR));
+    const list: number[] = PerfReport.samples.get(name) ?? [];
+    list.push(Number(milliseconds.toFixed(PerfReport.DIGITS)));
+    PerfReport.samples.set(name, list);
   }
 
   public static since(name: string, start: number): void {
     PerfReport.record(name, performance.now() - start);
+  }
+
+  public static async saveAsync(file: string): Promise<void> {
+    await commands.writeFile(`${inject("perfResultsFolder")}/${file}${PerfReport.EXTENSION}`, JSON.stringify(Object.fromEntries(PerfReport.samples)));
   }
 
   public static paintAsync(): Promise<void> {

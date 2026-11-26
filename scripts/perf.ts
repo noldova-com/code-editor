@@ -9,37 +9,26 @@
 import os from "node:os";
 
 import CommandFailedException from "./command-failed.exception.ts";
+import PerfResults from "./perf-results.ts";
 import Script from "./script.ts";
 
 export class Perf extends Script {
   private static readonly FOLDERS: readonly string[] = ["src/noldova.code.editor.angular", "src/noldova.code.editor.diff.angular"];
   private static readonly RUN_ARGUMENTS: readonly string[] = ["run", "perf", "--silent"];
-  private static readonly PREFIX: string = "noldova-perf\t";
-  private static readonly SEPARATOR: string = "\t";
-  private static readonly LINE_BREAK: RegExp = /\r?\n/u;
   private static readonly HEADER: string = "| Case | Samples | Median ms | Slowest ms |";
   private static readonly RULE: string = "|---|---:|---:|---:|";
 
   public override async runAsync(): Promise<void> {
-    const samples: Map<string, number[]> = new Map<string, number[]>();
+    await this.removeDirectoryAsync(PerfResults.FOLDER);
+    await this.createDirectoryAsync(PerfResults.FOLDER);
     for (const folder of Perf.FOLDERS) {
       await this.writeLogAsync(Perf.measuring(folder));
       const result = await this.readNPMCommandAsync(Perf.RUN_ARGUMENTS, folder);
       if (!result.isSuccessful)
         throw new CommandFailedException(Perf.failed(folder, result.output + result.errorOutput));
-
-      for (const line of result.output.split(Perf.LINE_BREAK)) {
-        const start: number = line.indexOf(Perf.PREFIX);
-        if (start < 0)
-          continue;
-
-        const [name = "", value = ""] = line.slice(start + Perf.PREFIX.length).split(Perf.SEPARATOR);
-        const list: number[] = samples.get(name) ?? [];
-        list.push(Number(value));
-        samples.set(name, list);
-      }
     }
 
+    const samples: ReadonlyMap<string, readonly number[]> = await PerfResults.readAsync(PerfResults.FOLDER);
     await this.writeLogAsync(Perf.machine());
     await this.writeLogAsync(Perf.HEADER);
     await this.writeLogAsync(Perf.RULE);
@@ -56,7 +45,7 @@ export class Perf extends Script {
   }
 
   private static machine(): string {
-    return `${os.type()} ${os.arch()}, ${os.cpus()[0]?.model.trim() ?? "unknown CPU"}, ${os.cpus().length} cores, headless Chromium`;
+    return `${os.type()} ${os.arch()}, ${os.cpus()[0]?.model.trim() ?? "unknown CPU"}, ${os.cpus().length} logical processors, headless Chromium`;
   }
 
   private static measuring(folder: string): string {
