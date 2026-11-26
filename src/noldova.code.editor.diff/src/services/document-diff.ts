@@ -141,10 +141,14 @@ export class DocumentDiff implements Disposable {
 
   public [Symbol.dispose](): void {
     this.disposed = true;
-    this.running?.cancel();
     for (const stop of this.stops)
       stop();
-    this.notify();
+    try {
+      this.running?.cancel();
+    }
+    finally {
+      this.notify();
+    }
   }
 
   private onEdit(change: TextChange, side: DiffSide): void {

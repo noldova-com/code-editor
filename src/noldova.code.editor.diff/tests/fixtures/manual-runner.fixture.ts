@@ -12,6 +12,11 @@ import { CancellationToken } from "@noldova/context.threading";
 export class ManualRunner implements IBackgroundRunner {
   private readonly answers: ((answer: boolean) => Promise<void>)[] = [];
   private readonly tokens: CancellationToken[] = [];
+  private readonly failsToCancel: boolean;
+
+  public constructor(failsToCancel: boolean = false) {
+    this.failsToCancel = failsToCancel;
+  }
 
   public get count(): number {
     return this.answers.length;
@@ -20,6 +25,10 @@ export class ManualRunner implements IBackgroundRunner {
   public runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken: CancellationToken = CancellationToken.none): Promise<TOutput> {
     const call: PromiseWithResolvers<TOutput> = Promise.withResolvers<TOutput>();
     this.tokens.push(cancellationToken);
+    if (this.failsToCancel)
+      cancellationToken.register(() => {
+        throw new Error("The runner failed to stop.");
+      });
     this.answers.push(async answer => {
       if (answer)
         call.resolve(ManualRunner.drive(job.steps(input)));

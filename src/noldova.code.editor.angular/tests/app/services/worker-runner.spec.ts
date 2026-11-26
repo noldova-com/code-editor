@@ -28,16 +28,17 @@ describe(WorkerRunner.name, () => {
     expect([[...first], [...second], job.ran, fallback.names, runner.usesWorker]).toEqual([[3], [60], 0, [], true]);
   });
 
-  it("runs a job its worker doesn't serve on its fallback and rejects a job that fails in the worker", async () => {
+  it("runs a job its worker doesn't serve on its fallback with the caller's token and rejects a job that fails in the worker", async () => {
     const fallback: CountingRunner = new CountingRunner();
     using runner = new WorkerRunner(Workers.sum(), fallback);
+    const source: CancellationTokenSource = new CancellationTokenSource();
 
-    const other: Int32Array = await runner.runAsync(new SumJob(WorkerValues.otherJob), [4, 5]);
+    const other: Int32Array = await runner.runAsync(new SumJob(WorkerValues.otherJob), [4, 5], source.token);
     const failed: Promise<void> = expect(runner.runAsync(new SumJob(), [1, -1])).rejects.toSatisfy((t: unknown) =>
       t instanceof BackgroundJobFailedException && t.name === BackgroundJobFailedException.name &&
       t.message === `The background job ${SumJob.defaultName} failed in the worker: No negative numbers.`);
 
-    expect([[...other], fallback.names]).toEqual([[9], [WorkerValues.otherJob]]);
+    expect([[...other], fallback.names, fallback.tokens.map(t => t === source.token)]).toEqual([[9], [WorkerValues.otherJob], [true]]);
     await failed;
   });
 

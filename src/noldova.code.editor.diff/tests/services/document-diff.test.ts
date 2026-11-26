@@ -12,6 +12,7 @@ import { TextDocument, TextEdit, TextRange } from "@noldova/code.editor";
 import { DiffSide, DocumentDiff } from "@noldova/code.editor.diff";
 import type { ChangeRanges, LineChange } from "@noldova/code.editor.diff";
 import { type IReadOnlyList, List } from "@noldova/context.collections";
+import { CancellationCallbacksFailedException } from "@noldova/context.threading";
 
 import { ManualRunner } from "../fixtures/manual-runner.fixture.js";
 import { WholeAlgorithm } from "../fixtures/whole-algorithm.fixture.js";
@@ -131,6 +132,23 @@ export class DocumentDiffTests {
     diff[Symbol.dispose]();
 
     Expect.same([2, false, true], [runner.count, runner.canceled(0), runner.canceled(1)]);
+  }
+
+  @TestMethod
+  public async stopsFollowingBothSidesAndTellsItsListenersWhenCancelingTheRunningDiffThrows(): Promise<void> {
+    const runner: ManualRunner = new ManualRunner(true);
+    const modified: TextDocument = TextDocument.fromText("a");
+    const diff: DocumentDiff = new DocumentDiff(TextDocument.fromText("a"), modified, undefined, runner);
+    await runner.answerAsync(0);
+    let told: number = 0;
+    diff.onChange(() => told++);
+    modified.apply(new List([new TextEdit(TextRange.of(0, 0, 0, 1), "b")]));
+
+    Assert.throws(() => diff[Symbol.dispose](), CancellationCallbacksFailedException);
+    const toldOnDispose: number = told;
+    modified.apply(new List([new TextEdit(TextRange.of(0, 0, 0, 1), "c")]));
+
+    Expect.same([2, 2, 2, true], [runner.count, toldOnDispose, told, runner.canceled(1)]);
   }
 
   @TestMethod
