@@ -172,22 +172,22 @@ Measured on 2026-11-26 at 0.0.2, as the median and slowest of each case's sample
 
 | Case | Samples | Linux, Intel Core i7-11700F, 4 logical processors | macOS, Intel Core i9-8950HK, 12 logical processors | Windows, Intel Core i7-11700F, 4 logical processors |
 |---|---:|---:|---:|---:|
-| Opening a 1,000,000-line document until its first lines show, plain | 5 | 110 / 127 | 176 / 197 | 118 / 138 |
-| The same, highlighted, until its first line shows colored | 5 | 262 / 385 | 404 / 521 | 262 / 354 |
-| A keypress in its middle, the work before the frame | 100 | 1.2 / 3.4 | 1.6 / 3.1 | 1.4 / 6.9 |
-| The same, until the line is painted | 100 | 16 / 17 | 16 / 24 | 16 / 68 |
-| A scroll frame from top to bottom, the work before the frame | 1,500 | 1.3 / 6.6 | 2.0 / 3.7 | 1.9 / 7.8 |
-| The same, until the frame is painted | 1,500 | 16 / 21 | 16 / 26 | 16 / 47 |
-| Searching it for a word on every line, until the first matches show | 5 | 28 / 28 | 24 / 32 | 25 / 28 |
-| The same, until it counts the last match | 5 | 1,618 / 1,663 | 2,786 / 2,836 | 1,825 / 2,087 |
-| A diff of two 100,000-line documents, one line in a hundred changed, in a worker until the changes show | 5 | 100 / 194 | 114 / 241 | 100 / 203 |
+| Opening a 1,000,000-line document until its first lines show, plain | 5 | 117 / 145 | 176 / 202 | 133 / 165 |
+| The same, highlighted, until its first line shows colored | 5 | 277 / 405 | 391 / 520 | 283 / 400 |
+| A keypress in its middle, the work before the frame | 100 | 1.7 / 4.5 | 1.6 / 4.3 | 1.8 / 7.0 |
+| The same, until the line is painted | 100 | 17 / 19 | 17 / 23 | 17 / 75 |
+| A scroll frame from top to bottom, the work before the frame | 1,500 | 2.0 / 12.6 | 2.0 / 4.4 | 1.8 / 9.5 |
+| The same, until the frame is painted | 1,500 | 17 / 22 | 17 / 25 | 17 / 69 |
+| Searching it for a word on every line, until the first matches show | 5 | 27 / 32 | 25 / 36 | 27 / 33 |
+| The same, until it counts the last match | 5 | 489 / 556 | 741 / 751 | 498 / 556 |
+| A diff of two 100,000-line documents, one line in a hundred changed, in a worker until the changes show | 5 | 131 / 271 | 111 / 228 | 137 / 249 |
 
-A painted keypress or frame waits for the next frame, about 16.7 ms at 60 Hz, so the work before it is the editor's own cost; the count of a million matches takes seconds, while the find bar shows the matches found so far with a plus, which #18 follows.
+A painted keypress or frame waits for the next frame, about 16.7 ms at 60 Hz, so the work before it is the editor's own cost. The count of a million matches takes under a second, since each line's matches are kept as column pairs and the background search reads the clock once every 64 lines, a read costing more than searching a short line; the find bar shows the matches found so far with a plus until then. Opening the document is followed in #20, and the single slow keypresses and frames on Windows in #21.
 
 - Opening a 1,000,000-line document builds its tree in one pass, copying each character into one chunk, and an edit in its middle copies only the chunk it reaches, 512 lines: `TextDocumentTests.opensA1000000LineDocumentCopyingEachCharacterIntoOneChunkAndEditsItsMiddleCopyingOnlyTheChunkTheEditReaches`.
   `TextDocument.fromTextAsync` builds the same tree in slices of 500,000 characters and awaits the pause its caller gives between them, such as a zero timeout in a page, so a long open never holds the page: `CodeEditorComponent` "opens a 1,000,000-line document in slices of under a million characters and shows it, reading only the lines in view".
 - A keypress in a 1,000,000-line document updates the model and its view reading only the lines in view: `CodeEditorComponent` "takes a keypress in the middle of a 1,000,000-line document and updates its view, reading only the lines in view".
-- Search keeps each line's matches in chunks with a match count per chunk, searches the lines in view at once and the rest in background slices, and after an edit searches again only the edited lines: `SearchResultsTests.findsTheMatchesInViewOfA1000000LineDocumentSearchingOnlyTheLinesInViewAndFollowsAnEditSearchingNone`.
+- Search keeps each line's matches in chunks with a match count per chunk, searches the lines in view at once and the rest in background slices that read the clock once every 64 lines, and after an edit searches again only the edited lines: `SearchResultsTests.searchesOnlyTheLinesAskedAtOnceThenTheRestInBackgroundSlicesReadingTheClockOnceEvery64LinesEachLineOnce` and `SearchResultsTests.findsTheMatchesInViewOfA1000000LineDocumentSearchingOnlyTheLinesInViewAndFollowsAnEditSearchingNone`.
   Until the background finishes, the find bar shows the matches found so far with a plus; a keypress in the find field or in the text of a 1,000,000-line document with a query set reads only the lines in view: `FindBarComponent` "takes keypresses in the field and the text of a 1,000,000-line document reading only the lines in view, counting the matches in the background".
 - Scrolling a 1,000,000-line document, once open, renders only the lines each frame reaches: `CodeEditorComponent` "scrolls a 1,000,000-line document frame by frame, once open, rendering the lines each frame reaches, reading only the lines in view".
 - Highlighting follows an edit copying only the chunk it reaches, and tokenizes again only the lines the edit reaches: `TokenCacheTests.followsAnEditToA1000000LineDocumentWithoutReadingItsLinesCopyingOnlyTheChunkEachEditReachesAndReReadsOnlyTheLinesTheEditsReach`.
