@@ -8,6 +8,4 @@
 
 export class WorkerValues {
   public static readonly otherJob: string = "test.other";
-  public static readonly earlyReason: string = "before";
-  public static readonly lateReason: string = "during";
 }

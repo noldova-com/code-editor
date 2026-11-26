@@ -9,6 +9,7 @@
 import "@noldova/context.core";
 import type { IReadOnlyList } from "@noldova/context.collections";
 import { ArgumentException, Exception, type ExceptionOptions } from "@noldova/context.exceptions";
+import type { CancellationToken } from "@noldova/context.threading";
 
 /**
  * Classifies an edit transaction for undo grouping.
@@ -2922,8 +2923,9 @@ export declare class SlicedRunner implements IBackgroundRunner {
    *
    * @param job The job.
    * @param input Its input.
-   * @param signal Stops the run between slices: the promise rejects with the
-   * signal's reason. An aborted signal rejects at once.
+   * @param cancellationToken Stops the run between slices: the promise rejects
+   * with an `OperationCanceledException`. A token already canceled rejects at
+   * once. Defaults to `CancellationToken.none`.
    * @returns The job's output.
    * @example
    * ```ts
@@ -2933,7 +2935,7 @@ export declare class SlicedRunner implements IBackgroundRunner {
    * await new SlicedRunner().runAsync(job, "input");
    * ```
    */
-  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput>;
+  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken?: CancellationToken): Promise<TOutput>;
 }
 
 /**
@@ -4273,11 +4275,12 @@ export interface IBackgroundRunner {
    *
    * @param job The job.
    * @param input Its input.
-   * @param signal Stops the run: the promise rejects with the signal's
-   * reason, and no more of the job runs on the calling thread.
+   * @param cancellationToken Stops the run: the promise rejects with an
+   * `OperationCanceledException`, and no more of the job runs on the calling
+   * thread. Defaults to `CancellationToken.none`.
    * @returns The job's output.
    */
-  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput>;
+  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken?: CancellationToken): Promise<TOutput>;
 }
 
 /**

@@ -106,7 +106,7 @@ export class DocumentDiffTests {
   }
 
   @TestMethod
-  public async stopsFollowingBothSidesOnceDisposedAndAbortsTheRunningDiff(): Promise<void> {
+  public async stopsFollowingBothSidesOnceDisposedAndCancelsTheRunningDiff(): Promise<void> {
     const runner: ManualRunner = new ManualRunner();
     const original: TextDocument = TextDocument.fromText("a");
     const modified: TextDocument = TextDocument.fromText("a");
@@ -117,7 +117,20 @@ export class DocumentDiffTests {
     original.apply(new List([new TextEdit(TextRange.of(0, 0, 0, 1), "c")]));
     await diff.settledAsync();
 
-    Expect.same([[], 1, true], [DocumentDiffTests.shapes(diff), runner.count, runner.aborted(0)]);
+    Expect.same([[], 1, true], [DocumentDiffTests.shapes(diff), runner.count, runner.canceled(0)]);
+  }
+
+  @TestMethod
+  public async cancelsOnlyTheRunStillOutWhenDisposedLeavingTheTokensOfRunsThatLanded(): Promise<void> {
+    const runner: ManualRunner = new ManualRunner();
+    const modified: TextDocument = TextDocument.fromText("a");
+    const diff: DocumentDiff = new DocumentDiff(TextDocument.fromText("a"), modified, undefined, runner);
+
+    await runner.answerAsync(0);
+    modified.apply(new List([new TextEdit(TextRange.of(0, 0, 0, 1), "b")]));
+    diff[Symbol.dispose]();
+
+    Expect.same([2, false, true], [runner.count, runner.canceled(0), runner.canceled(1)]);
   }
 
   @TestMethod
