@@ -12,7 +12,7 @@ import type { ComponentFixture } from "@angular/core/testing";
 import { TestBed } from "@angular/core/testing";
 import { TextDocument, UndoHistory } from "@noldova/code.editor";
 import { DocumentDiff } from "@noldova/code.editor.diff";
-import { describe, it } from "vitest";
+import { afterAll, describe, it } from "vitest";
 
 import { DiffEditorComponent } from "../../src/app/components/diff-editor/diff-editor.component.ts";
 import { DiffLayout } from "../../src/app/enums/diff-layout.ts";
@@ -32,6 +32,8 @@ const ORIGINAL: string = Array.from({ length: LINES }, (_, i) => `line ${i}`).jo
 const MODIFIED: string = Array.from({ length: LINES }, (_, i) => i % CHANGE_EVERY === CHANGED_AT ? `changed ${i}` : `line ${i}`).join("\n");
 
 describe("Diff view of two 100,000-line documents", () => {
+  afterAll(() => PerfReport.saveAsync("diff-editor"));
+
   it("diffs them in a worker until the changes show", async () => {
     using runner = DiffWorker.create();
     for (let run: number = 0; run < RUNS; run++) {
