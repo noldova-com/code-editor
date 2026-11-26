@@ -44,8 +44,8 @@ An app keeps one `EditorRegistries`, the code view's `CodeEditorRegistries`, and
   Registering an id the same registry holds throws `RegistrationExistsException`, and running an id no registry holds throws `RegistrationMissingException` and runs nothing else.
   A command returns false when it doesn't apply, and the key goes on to the next binding.
   Each built-in command is a typed member declared once, such as `CoreCommands.cursorWordLeft`, with a move's `Select` twin as its `select`; bindings, other packages and tests refer to the member, never to its id's text, as settings do with `CoreSettings`.
-- Key bindings are data, `{ key, command, args, when }`, in VS Code's key text with `mod` for Cmd on Mac and Ctrl elsewhere; a key that differs by platform is a rule per platform, told apart by the `platform` condition, `mac`, `windows` or `linux`, which the core reads from the runtime and a host may set; a key matches by its `key` name, by its `code` name such as `BracketLeft`, or, for a letter or digit the layout gives no plain character for, by its physical key.
-- A key may be a sequence of two chords separated by a space, such as `ctrl+k ctrl+c`, as in VS Code: one `KeyDispatcher` serves a view and the code views inside it, shared through the Angular package's `KeyScope`, so each press in a diff or merge view's pane goes through the pane's bindings and then its host's; it waits after a sequence's first chord, which wins over a single-chord binding on the same key, ignores a modifier key alone while it waits, runs the binding the next chord completes, and drops the sequence, using up the press, on any other key, Escape too; the code view drops it on a click or the loss of the focus too, and tells its owner the pending chord as the platform shows it, such as `⌘K` or `Ctrl+K`, through `keySequencePending`, which the diff and merge views give too. The most chords a sequence may have is a number in the core's resources.
+- Key bindings are data, `{ key, command, args, when }`, as text of modifiers and a key joined by `+`, such as `ctrl+shift+k`, with `mod` for Cmd on Mac and Ctrl elsewhere; a key that differs by platform is a rule per platform, told apart by the `platform` condition, `mac`, `windows` or `linux`, which the core reads from the runtime and a host may set; a key matches by its `key` name, by its `code` name such as `BracketLeft`, or, for a letter or digit the layout gives no plain character for, by its physical key.
+- A key may be a sequence of two chords separated by a space, such as `ctrl+k ctrl+c`: one `KeyDispatcher` serves a view and the code views inside it, shared through the Angular package's `KeyScope`, so each press in a diff or merge view's pane goes through the pane's bindings and then its host's; it waits after a sequence's first chord, which wins over a single-chord binding on the same key, ignores a modifier key alone while it waits, runs the binding the next chord completes, and drops the sequence, using up the press, on any other key, Escape too; the code view drops it on a click or the loss of the focus too, and tells its owner the pending chord as the platform shows it, such as `⌘K` or `Ctrl+K`, through `keySequencePending`, which the diff and merge views give too. The most chords a sequence may have is a number in the core's resources.
   The user's rules come first, then each package's defaults, the last-added first; a user rule `-command` removes that command's defaults on the key it names, or on every key.
 - Conditions are named facts, declared with a default, that a binding's `when` tests with `!`, `&&`, `||`, `==`, `!=` and parentheses; a name nothing set reads as its default, or false.
   A package's default bindings build their `when` from the typed keys, with `Condition.has`, `Condition.equals` and `Condition.notEquals`, or `CoreConditions.onMac` and `offMac`; a user's rule gives it as text, which `Condition.parse` reads.
@@ -100,7 +100,7 @@ An app keeps one `EditorRegistries`, the code view's `CodeEditorRegistries`, and
 
 ### Decorations
 
-The code view's owner draws on it through a public API in the manner of mature editors' decorations and view zones, with no knowledge of what the marks mean in the view:
+The code view's owner draws on it through a public API of marks over its lines and text and rows inserted between its lines, with no knowledge of what the marks mean in the view:
 
 - `decorations`, a list of layers, each an `ICodeDecorations`, such as the array-backed `CodeDecorations`; the view asks each layer only for the lines in view, so a layer can compute them lazily, as the diff view's does, and a later layer paints over an earlier one.
   A layer over a large document stays lazy by indexing its marks by line, as `CodeDecorations` and the diff view's layer do with one `LineIndex` each, the diff view's over the comparison's changes, from which it builds the decorations of the lines asked for; its inserted rows are read whole whenever the layers change, so they stay few, about one per change.
@@ -166,6 +166,23 @@ The code view's owner draws on it through a public API in the manner of mature e
 ## Performance
 
 The tests count the work rather than time it, so a slower or busier machine can't fail them, and a change that makes the work grow with the document does.
+
+`npm run perf` times the same work in headless Chromium, with Angular in production mode, and fails nothing on a slow figure, only on a case with no samples.
+Measured on 2026-11-26 at 0.0.2, as the median and slowest of each case's samples, in milliseconds:
+
+| Case | Samples | Linux, Intel Core i7-11700F, 4 logical processors | macOS, Intel Core i9-8950HK, 12 logical processors | Windows, Intel Core i7-11700F, 4 logical processors |
+|---|---:|---:|---:|---:|
+| Opening a 1,000,000-line document until its first lines show, plain | 5 | 110 / 127 | 176 / 197 | 118 / 138 |
+| The same, highlighted, until its first line shows colored | 5 | 262 / 385 | 404 / 521 | 262 / 354 |
+| A keypress in its middle, the work before the frame | 100 | 1.2 / 3.4 | 1.6 / 3.1 | 1.4 / 6.9 |
+| The same, until the line is painted | 100 | 16 / 17 | 16 / 24 | 16 / 68 |
+| A scroll frame from top to bottom, the work before the frame | 1,500 | 1.3 / 6.6 | 2.0 / 3.7 | 1.9 / 7.8 |
+| The same, until the frame is painted | 1,500 | 16 / 21 | 16 / 26 | 16 / 47 |
+| Searching it for a word on every line, until the first matches show | 5 | 28 / 28 | 24 / 32 | 25 / 28 |
+| The same, until it counts the last match | 5 | 1,618 / 1,663 | 2,786 / 2,836 | 1,825 / 2,087 |
+| A diff of two 100,000-line documents, one line in a hundred changed, in a worker until the changes show | 5 | 100 / 194 | 114 / 241 | 100 / 203 |
+
+A painted keypress or frame waits for the next frame, about 16.7 ms at 60 Hz, so the work before it is the editor's own cost; the count of a million matches takes seconds, while the find bar shows the matches found so far with a plus, which #18 follows.
 
 - Opening a 1,000,000-line document builds its tree in one pass, copying each character into one chunk, and an edit in its middle copies only the chunk it reaches, 512 lines: `TextDocumentTests.opensA1000000LineDocumentCopyingEachCharacterIntoOneChunkAndEditsItsMiddleCopyingOnlyTheChunkTheEditReaches`.
   `TextDocument.fromTextAsync` builds the same tree in slices of 500,000 characters and awaits the pause its caller gives between them, such as a zero timeout in a page, so a long open never holds the page: `CodeEditorComponent` "opens a 1,000,000-line document in slices of under a million characters and shows it, reading only the lines in view".

@@ -52,6 +52,29 @@
             }
           }
         },
+        "perf": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "code-editor:build:perf",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "runnerConfig": "vitest.config.ts",
+            "browsers": [
+              "chromiumHeadless"
+            ],
+            "browserViewport": "1280x800",
+            "include": [
+              "tests/perf/**/*.perf.ts"
+            ],
+            "providersFile": "tests/test-providers.ts",
+            "setupFiles": [
+              "tests/perf/production-mode.setup.ts",
+              "tests/kit-stylesheet.setup.ts"
+            ],
+            "watch": false,
+            "coverage": false
+          }
+        },
         "build": {
           "builder": "@angular/build:application",
           "options": {
@@ -67,6 +90,10 @@
             "development": {
               "optimization": false,
               "sourceMap": true
+            },
+            "perf": {
+              "optimization": true,
+              "sourceMap": false
             }
           },
           "defaultConfiguration": "development"

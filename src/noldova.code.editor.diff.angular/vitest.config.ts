@@ -38,6 +38,9 @@ export default defineConfig({
     }
   },
   test: {
+    provide: {
+      perfResultsFolder: fileURLToPath(new URL("../../_build/perf", import.meta.url))
+    },
     attachmentsDir: fileURLToPath(new URL("../../_build/code-editor-diff-angular/attachments", import.meta.url)),
     coverage: {
       reportsDirectory: fileURLToPath(new URL("../../_build/code-editor-diff-angular-coverage", import.meta.url))
