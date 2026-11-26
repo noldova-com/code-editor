@@ -1425,4 +1425,3 @@ export declare class CodeEditorComponent {
    */
   scrollTo(top: number): void;
 }
-
