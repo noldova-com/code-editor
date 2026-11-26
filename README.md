@@ -31,7 +31,7 @@ An Angular app installs the view packages it uses, pinned exactly; each brings t
 npm install --save-exact @noldova/code.editor.angular @noldova/code.editor.merge.angular
 ```
 
-Its peers are Angular 22, RxJS 7, `@noldova/ui.components.angular` 0.0.35 or later, and `@noldova/context.core`, `@noldova/context.collections` and `@noldova/context.exceptions` 0.0.15 or later, below 0.1.0.
+Its peers are Angular 22, RxJS 7, `@noldova/ui.components.angular` 0.0.35 or later, and `@noldova/context.core`, `@noldova/context.collections` and `@noldova/context.exceptions` 0.0.16 or later, below 0.1.0.
 
 A merge view takes a base and two sides, and gives the result after every change:
 
