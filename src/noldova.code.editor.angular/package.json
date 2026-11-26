@@ -20,6 +20,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
+    "perf": "playwright install --only-shell chromium && ng run code-editor:perf",
     "test": "ngc -p tsconfig.json && playwright install --only-shell chromium && ng test"
   },
   "dependencies": {
