@@ -26,8 +26,8 @@
     "@shikijs/primitive": "4.5.0"
   },
   "peerDependencies": {
-    "@noldova/context.collections": ">=0.0.17 <0.1.0",
-    "@noldova/context.core": ">=0.0.17 <0.1.0",
-    "@noldova/context.exceptions": ">=0.0.17 <0.1.0"
+    "@noldova/context.collections": ">=0.0.18 <0.1.0",
+    "@noldova/context.core": ">=0.0.18 <0.1.0",
+    "@noldova/context.exceptions": ">=0.0.18 <0.1.0"
   }
 }
