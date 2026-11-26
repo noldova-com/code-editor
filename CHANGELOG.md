@@ -4,6 +4,12 @@
 
 Each version's section is written by the pull request that changes the version, from the pull requests merged since the previous version; other pull requests don't edit this file.
 
+## 0.0.2
+
+The seven packages over CONTEXT 0.0.17; their own API doesn't change.
+
+- Every package takes CONTEXT's packages as peers from 0.0.17, `>=0.0.17 <0.1.0`, and the core, the diff model and the Angular package take `@noldova/context.threading` from 0.0.17 too, so an app installs CONTEXT 0.0.17 or later, below 0.1.0.
+
 ## 0.0.1
 
 The first published version of the code editor's seven packages, released together at one version, over `@noldova/diff` 0.0.2.
