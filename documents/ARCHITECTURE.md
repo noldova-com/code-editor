@@ -32,7 +32,7 @@ It then runs its `scripts/carry-docs.ts`, which puts the JSDoc of the package's 
 The compiler strips members marked `@internal`, such as the inserted rows' row-building, and the build fails when a built declaration file still holds one: `BuildTests.shipsTheAngularPackagesDeclarationsWithoutTheirInternalMembers`.
 A built declaration file of an Angular package that names `Disposable` or `Symbol.dispose` starts with a reference to TypeScript's `esnext.disposable` library, so an app type-checks the package without adding that library itself.
 Each package's manifest is written from its source `package.json` with `__VERSION__` set to the version `version.json` holds and the checkout's commit as `gitHead`, packed with `npm pack` into `_packages`, and installed at the root with `npm install --no-save`.
-Each manifest's entry is `api/index.js`, with `api/index.d.ts`; each package depends on the packages under it at that same version, and the Angular packages take as peers the kit, `>=0.0.20 <0.1.0`, and Angular and RxJS, from the version the root pins up to the next major, such as `>=22.3.0 <23.0.0`, so an app loads its own copy of each.
+Each manifest's entry is `api/index.js`, with `api/index.d.ts`; each package depends on the packages under it at that same version, and the Angular packages take as peers the kit, `>=0.0.35 <0.1.0`, and Angular and RxJS, from the version the root pins up to the next major, such as `>=22.3.0 <23.0.0`, so an app loads its own copy of each.
 The TextMate package pins Shiki exactly, the diff and merge models `@noldova/diff`, and every package takes CONTEXT's packages as peers, `>=0.0.12 <0.1.0`; `npm run build --silent -- --list-copies` lists the files the build copies into the packages and builds nothing.
 
 ## Registries
