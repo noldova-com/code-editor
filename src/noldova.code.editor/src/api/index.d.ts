@@ -220,8 +220,9 @@ export interface IHighlighter {
 }
 
 /**
- * A language, as plain data in VS Code's `contributes.languages` shape, so a
- * host can load one from a file.
+ * A language, as plain data: its id, the names, file names and first line it
+ * is found by, and its comments, brackets and word characters, so a host can
+ * load one from a file.
  *
  * @remarks
  * Every field but `id` is optional. A file's language is found by

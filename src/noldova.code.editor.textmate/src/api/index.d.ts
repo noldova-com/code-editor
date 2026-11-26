@@ -305,9 +305,9 @@ export declare class TextMateHighlighter implements IHighlighter {
 }
 
 /**
- * The 33 languages the TextMate package gives a host by default, as VS Code
- * describes them, with Shiki's grammar for each and the indent each keeps by
- * convention.
+ * The 33 languages the TextMate package gives a host by default, each with its
+ * names, files, comments and brackets, Shiki's grammar for it and the indent it
+ * keeps by convention.
  */
 export declare class TextMateLanguages {
   /**
