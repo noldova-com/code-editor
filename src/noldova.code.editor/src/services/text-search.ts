@@ -26,6 +26,7 @@ export class TextSearch {
 
   private readonly pattern: RegExp | null;
   private readonly replacePattern: RegExp | null;
+  private searchedLength: number = 0;
 
   public constructor(query: SearchQuery) {
     this.pattern = query.text === String.empty ? null : TextSearch.compile(query, Resources.searchFlags);
@@ -40,11 +41,16 @@ export class TextSearch {
     return matches;
   }
 
+  public get searchedCharacters(): number {
+    return this.searchedLength;
+  }
+
   public columnsIn(document: TextDocument, line: number): readonly number[] {
     const pattern: RegExp | null = this.pattern;
     if (Object.isNull(pattern))
       return TextSearch.NO_COLUMNS;
     const text: string = document.lineText(line);
+    this.searchedLength += text.length;
     let columns: number[] | null = null;
     pattern.lastIndex = 0;
     for (let match: RegExpExecArray | null = pattern.exec(text); !Object.isNull(match); match = pattern.exec(text)) {

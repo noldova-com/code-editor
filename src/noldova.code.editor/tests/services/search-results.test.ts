@@ -38,6 +38,20 @@ export class SearchResultsTests {
   }
 
   @TestMethod
+  public readsTheClockSoonerOnLongLinesOnceAbout4096CharactersWereSearched(): void {
+    const document: TextDocument = SearchResultsTests.documentOf(Array.from({ length: 10 }, () => `foo${"x".repeat(1497)}`));
+    const search: CountingSearch = new CountingSearch(new SearchQuery("foo"));
+    using results = new SearchResults(document, search);
+    let reads: number = 0;
+
+    Assert.areEqual(true, results.advance(() => ++reads < 0));
+    Expect.same([1, [0, 1, 2], 4500], [reads, [...search.searched], search.searchedCharacters]);
+    Assert.areEqual(false, results.advance(() => ++reads > 0));
+
+    Expect.same([3, 10, 10, true], [reads, search.searched.length, results.count, results.complete]);
+  }
+
+  @TestMethod
   public movesToTheNextOrPreviousMatchFromAPositionAsTheWholeSearchDoesBeforeAndAfterTheBackgroundFinishes(): void {
     const document: TextDocument = SearchResultsTests.documentOf(["bar", ...SearchResultsTests.linesOf(2000), "foo end"]);
     const search: TextSearch = new TextSearch(new SearchQuery("foo"));
