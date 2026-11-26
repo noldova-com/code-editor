@@ -21,6 +21,9 @@ import { Resources } from "../resources.js";
 import { Required } from "./required.js";
 
 export class TextSearch {
+  private static readonly NO_COLUMNS: readonly number[] = [];
+  private static readonly SURROGATE_PAIR_START: number = 0x10000;
+
   private readonly pattern: RegExp | null;
   private readonly replacePattern: RegExp | null;
 
@@ -35,6 +38,24 @@ export class TextSearch {
       matches.addRange(this.inLine(document, line));
 
     return matches;
+  }
+
+  public columnsIn(document: TextDocument, line: number): readonly number[] {
+    const pattern: RegExp | null = this.pattern;
+    if (Object.isNull(pattern))
+      return TextSearch.NO_COLUMNS;
+    const text: string = document.lineText(line);
+    let columns: number[] | null = null;
+    pattern.lastIndex = 0;
+    for (let match: RegExpExecArray | null = pattern.exec(text); !Object.isNull(match); match = pattern.exec(text)) {
+      const end: number = match.index + Required.at(match, 0).length;
+      if (end === match.index)
+        pattern.lastIndex = end + ((text.codePointAt(end) ?? 0) >= TextSearch.SURROGATE_PAIR_START ? 2 : 1);
+      else
+        (columns ??= []).push(match.index, end);
+    }
+
+    return columns ?? TextSearch.NO_COLUMNS;
   }
 
   public next(document: TextDocument, position: TextPosition): TextRange | null {
@@ -58,15 +79,10 @@ export class TextSearch {
   }
 
   private inLine(document: TextDocument, line: number): readonly TextRange[] {
-    if (Object.isNull(this.pattern))
-      return [];
-    const text: string = document.lineText(line);
+    const columns: readonly number[] = this.columnsIn(document, line);
     const matches: TextRange[] = [];
-    for (const match of text.matchAll(this.pattern)) {
-      const found: string = Required.at(match, 0);
-      if (found !== String.empty)
-        matches.push(TextRange.of(line, match.index, line, match.index + found.length));
-    }
+    for (let at: number = 0; at < columns.length; at += Resources.searchColumnsPerMatch)
+      matches.push(TextRange.of(line, Required.at(columns, at), line, Required.at(columns, at + 1)));
 
     return matches;
   }

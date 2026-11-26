@@ -3652,6 +3652,24 @@ export declare class TextSearch {
   findAll(document: TextDocument, fromLine?: number, toLine?: number): IReadOnlyList<TextRange>;
 
   /**
+   * Finds every match in one line, as column pairs, without making a range
+   * for each.
+   *
+   * @param document The document to search.
+   * @param line The line to search, from 0.
+   * @returns Each match's start and end columns, in pairs in line order; empty
+   * when there are none. Empty matches are skipped, as {@link TextSearch.findAll}
+   * skips them.
+   * @example
+   * ```ts
+   * import { SearchQuery, TextDocument, TextSearch } from "@noldova/code.editor";
+   *
+   * new TextSearch(new SearchQuery("a")).columnsIn(TextDocument.fromText("a b a"), 0); // [0, 1, 4, 5]
+   * ```
+   */
+  columnsIn(document: TextDocument, line: number): readonly number[];
+
+  /**
    * Finds the next match by searching the whole document.
    *
    * @param document The document to search.

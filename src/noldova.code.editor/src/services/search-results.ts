@@ -134,7 +134,7 @@ export class SearchResults implements Disposable {
     const known: readonly number[] | null = this.lines.get(line);
     if (!Object.isNull(known))
       return known;
-    const columns: readonly number[] = this.search.findAll(this.document, line, line + 1).selectMany(t => [t.start.column, t.end.column]).toArray();
+    const columns: readonly number[] = this.search.columnsIn(this.document, line);
     this.lines.set(line, columns);
 
     return columns;

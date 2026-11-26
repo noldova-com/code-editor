@@ -64,6 +64,19 @@ export class TextSearchTests {
   }
 
   @TestMethod
+  public givesOneLinesMatchesAsColumnPairsAsFindAllDoesEachTimeSkippingEmptyMatchesWholeCharactersAtATime(): void {
+    const search: TextSearch = new TextSearch(new SearchQuery("foo"));
+    const regex: TextSearch = new TextSearch(new SearchQuery("x*b+", true));
+    const emoji: TextDocument = TextDocument.fromText("\u{1F600}b\u{1F600}bb");
+    const pairs = (line: number): readonly number[] => search.findAll(DOCUMENT, line, line + 1).toArray().flatMap(t => [t.start.column, t.end.column]);
+
+    Expect.same([[0, 3, 4, 7], [0, 3, 6, 9], [3, 6]], [0, 1, 2].map(t => search.columnsIn(DOCUMENT, t)));
+    Expect.same([0, 1, 2].map(pairs), [0, 1, 2].map(t => search.columnsIn(DOCUMENT, t)));
+    Expect.same([[2, 3, 5, 7], [2, 3, 5, 7]], [regex.columnsIn(emoji, 0), regex.columnsIn(emoji, 0)]);
+    Expect.same([[], [], []], [new TextSearch(new SearchQuery("x*", true)).columnsIn(emoji, 0), new TextSearch(new SearchQuery("")).columnsIn(DOCUMENT, 0), new TextSearch(new SearchQuery("bar")).columnsIn(DOCUMENT, 1)]);
+  }
+
+  @TestMethod
   public refusesARegularExpressionThatDoesntCompileNamingIt(): void {
     Expect.throwsWhere(() => new TextSearch(new SearchQuery("(a", true)), SearchPatternException, error => error.pattern === "(a" && error.message.startsWith("The search pattern (a isn't a valid regular expression: SyntaxError") && error.cause instanceof SyntaxError && error.name === "SearchPatternException");
   }
