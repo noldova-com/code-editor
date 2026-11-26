@@ -7,18 +7,28 @@
  */
 
 import { type IBackgroundJob, type IBackgroundRunner, Required } from "@noldova/code.editor";
+import { CancellationToken } from "@noldova/context.threading";
 
 export class ManualRunner implements IBackgroundRunner {
   private readonly answers: ((answer: boolean) => Promise<void>)[] = [];
-  private readonly signals: (AbortSignal | undefined)[] = [];
+  private readonly tokens: CancellationToken[] = [];
+  private readonly failsToCancel: boolean;
+
+  public constructor(failsToCancel: boolean = false) {
+    this.failsToCancel = failsToCancel;
+  }
 
   public get count(): number {
     return this.answers.length;
   }
 
-  public runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput> {
+  public runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken: CancellationToken = CancellationToken.none): Promise<TOutput> {
     const call: PromiseWithResolvers<TOutput> = Promise.withResolvers<TOutput>();
-    this.signals.push(signal);
+    this.tokens.push(cancellationToken);
+    if (this.failsToCancel)
+      cancellationToken.register(() => {
+        throw new Error("The runner failed to stop.");
+      });
     this.answers.push(async answer => {
       if (answer)
         call.resolve(ManualRunner.drive(job.steps(input)));
@@ -31,8 +41,8 @@ export class ManualRunner implements IBackgroundRunner {
     return call.promise;
   }
 
-  public aborted(index: number): boolean {
-    return this.signals[index]?.aborted === true;
+  public canceled(index: number): boolean {
+    return Required.at(this.tokens, index).isCancellationRequested;
   }
 
   public async answerAsync(index: number): Promise<void> {

@@ -30,7 +30,6 @@ export class Resources {
   public static readonly mouseUp: "mouseup" = "mouseup";
   public static readonly message: "message" = "message";
   public static readonly error: "error" = "error";
-  public static readonly abort: "abort" = "abort";
   public static readonly runnerDisposed: string = "the runner was disposed";
   public static readonly finalPeriodPattern: RegExp = /\.$/u;
   public static readonly inputInsertText: string = "insertText";

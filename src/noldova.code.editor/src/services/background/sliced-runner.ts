@@ -8,6 +8,8 @@
 
 import "@noldova/context.core";
 
+import { CancellationToken } from "@noldova/context.threading";
+
 import type { IBackgroundJob } from "../../interfaces/background/i-background-job.js";
 import type { IBackgroundRunner } from "../../interfaces/background/i-background-runner.js";
 import { Resources } from "../../resources.js";
@@ -21,8 +23,8 @@ export class SlicedRunner implements IBackgroundRunner {
     this.sliceMilliseconds = sliceMilliseconds;
   }
 
-  public async runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput> {
-    signal?.throwIfAborted();
+  public async runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken: CancellationToken = CancellationToken.none): Promise<TOutput> {
+    cancellationToken.throwIfCancellationRequested();
     const steps: Generator<void, TOutput, void> = job.steps(input);
     for (;;) {
       const deadline: number = performance.now() + this.sliceMilliseconds;
@@ -32,7 +34,7 @@ export class SlicedRunner implements IBackgroundRunner {
       if (step.done === true)
         return step.value;
       await SlicedRunner.yieldAsync();
-      signal?.throwIfAborted();
+      cancellationToken.throwIfCancellationRequested();
     }
   }
 

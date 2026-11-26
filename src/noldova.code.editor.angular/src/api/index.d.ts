@@ -11,6 +11,7 @@ import type { CommandContext, EditorRegistries, IBackgroundJob, IBackgroundRunne
   UndoHistory } from "@noldova/code.editor";
 import type { IReadOnlyList } from "@noldova/context.collections";
 import { Exception } from "@noldova/context.exceptions";
+import type { CancellationToken } from "@noldova/context.threading";
 
 /**
  * Reports that a background job failed in a {@link WorkerRunner}'s worker,
@@ -94,8 +95,9 @@ export declare class WorkerRunner implements IBackgroundRunner, Disposable {
    *
    * @param job The job; the worker finds its own copy by the job's name.
    * @param input Its input, which the worker receives as a structured clone.
-   * @param signal Stops waiting for the run: the promise rejects with the
-   * signal's reason, and the worker's answer is dropped.
+   * @param cancellationToken Stops waiting for the run: the promise rejects
+   * with an `OperationCanceledException`, and the worker's answer is dropped.
+   * Defaults to `CancellationToken.none`.
    * @returns The job's output; it rejects with a
    * {@link BackgroundJobFailedException} when the job throws in the worker or
    * the runner is disposed first.
@@ -109,7 +111,7 @@ export declare class WorkerRunner implements IBackgroundRunner, Disposable {
    * await runner.runAsync(job, [1, 2, 3]);
    * ```
    */
-  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput>;
+  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken?: CancellationToken): Promise<TOutput>;
 
   /**
    * Ends the worker and rejects every run still waiting for it.
