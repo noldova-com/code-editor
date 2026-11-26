@@ -30,7 +30,7 @@ export default defineConfig({
     }
   ],
   optimizeDeps: {
-    include: ["@noldova/context.core", "@noldova/context.exceptions", "@noldova/context.collections"]
+    include: ["@noldova/context.core", "@noldova/context.exceptions", "@noldova/context.collections", "@noldova/context.threading"]
   },
   server: {
     fs: {

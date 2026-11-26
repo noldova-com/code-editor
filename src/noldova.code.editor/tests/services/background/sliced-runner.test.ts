@@ -7,6 +7,7 @@
  */
 
 import { Assert, TestClass, TestMethod } from "@noldova/context.testing";
+import { type CancellationToken, CancellationTokenSource, OperationCanceledException } from "@noldova/context.threading";
 
 import { SlicedRunner } from "@noldova/code.editor";
 
@@ -15,9 +16,6 @@ import { Expect } from "../../support/expect.js";
 
 @TestClass
 export class SlicedRunnerTests {
-  private static readonly EARLY_REASON: string = "before";
-  private static readonly LATE_REASON: string = "during";
-
   @TestMethod
   public slicesForFiveMillisecondsUnlessGivenAnotherLength(): void {
     Expect.same([5, 10], [new SlicedRunner().sliceMilliseconds, new SlicedRunner(10).sliceMilliseconds]);
@@ -42,17 +40,32 @@ export class SlicedRunnerTests {
   }
 
   @TestMethod
-  public async rejectsWithTheSignalsReasonAndRunsNoMoreStepsOnceAborted(): Promise<void> {
+  public async rejectsWithAnOperationCanceledExceptionAndRunsNoMoreStepsOnceItsTokenIsCanceled(): Promise<void> {
     const job: CountJob = new CountJob();
     const early: CountJob = new CountJob();
-    const controller: AbortController = new AbortController();
-    const stopped: AbortController = new AbortController();
-    stopped.abort(SlicedRunnerTests.EARLY_REASON);
-    const running: Promise<unknown> = new SlicedRunner(0).runAsync(job, 3, controller.signal).catch((error: unknown) => error);
-    const refused: Promise<unknown> = new SlicedRunner(0).runAsync(early, 3, stopped.signal).catch((error: unknown) => error);
+    const source: CancellationTokenSource = new CancellationTokenSource();
+    const canceled: CancellationTokenSource = new CancellationTokenSource();
+    canceled.cancel();
+    const running: Promise<unknown> = new SlicedRunner(0).runAsync(job, 3, source.token).catch((error: unknown) => error);
+    const refused: Promise<unknown> = new SlicedRunner(0).runAsync(early, 3, canceled.token).catch((error: unknown) => error);
 
-    controller.abort(SlicedRunnerTests.LATE_REASON);
+    source.cancel();
 
-    Expect.same([SlicedRunnerTests.LATE_REASON, 1, SlicedRunnerTests.EARLY_REASON, 0], [await running, job.ran, await refused, early.ran]);
+    Expect.same([true, 1, true, 0], [SlicedRunnerTests.canceledBy(await running, source.token), job.ran, SlicedRunnerTests.canceledBy(await refused, canceled.token), early.ran]);
+  }
+
+  @TestMethod
+  public async keepsItsOutputWhenItsTokenIsCanceledAfterTheRunEnds(): Promise<void> {
+    const source: CancellationTokenSource = new CancellationTokenSource();
+    const job: CountJob = new CountJob();
+
+    const output: number = await new SlicedRunner(0).runAsync(job, 3, source.token);
+    source.cancel();
+
+    Expect.same([6, 3], [output, job.ran]);
+  }
+
+  private static canceledBy(error: unknown, token: CancellationToken): boolean {
+    return error instanceof OperationCanceledException && error.cancellationToken === token;
   }
 }

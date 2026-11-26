@@ -485,7 +485,7 @@ export declare class DocumentDiff implements Disposable {
   onChange(listener: () => void): () => void;
 
   /**
-   * Stops following both documents' edits; a run still out is aborted and
+   * Stops following both documents' edits; a run still out is canceled and
    * its result ignored.
    *
    * @example

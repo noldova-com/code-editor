@@ -6,8 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import type { CancellationToken } from "@noldova/context.threading";
+
 import type { IBackgroundJob } from "./i-background-job.js";
 
 export interface IBackgroundRunner {
-  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, signal?: AbortSignal): Promise<TOutput>;
+  runAsync<TInput, TOutput>(job: IBackgroundJob<TInput, TOutput>, input: TInput, cancellationToken?: CancellationToken): Promise<TOutput>;
 }

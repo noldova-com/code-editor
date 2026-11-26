@@ -10,6 +10,7 @@ import "@noldova/context.core";
 
 import { type DiffSpan, type IBackgroundRunner, type IDiffAlgorithm, Required, SlicedRunner, type TextChange, type TextDocument, TextPosition, TextRange } from "@noldova/code.editor";
 import { BinarySearchService, Dictionary, Enumerable, HashSet, type IReadOnlyList, List } from "@noldova/context.collections";
+import { CancellationTokenSource } from "@noldova/context.threading";
 
 import { DiffSide } from "../enums/diff-side.js";
 import { ChangeRanges } from "../models/change-ranges.js";
@@ -34,7 +35,7 @@ export class DocumentDiff implements Disposable {
   private changeList: IReadOnlyList<LineChange> = new List<LineChange>();
   private limit: number = Resources.defaultCharacterDiffLimit;
   private generation: number = 0;
-  private running: AbortController | null = null;
+  private running: CancellationTokenSource | null = null;
   private waiting: boolean = false;
   private lastFailed: boolean = false;
   private disposed: boolean = false;
@@ -140,10 +141,14 @@ export class DocumentDiff implements Disposable {
 
   public [Symbol.dispose](): void {
     this.disposed = true;
-    this.running?.abort();
     for (const stop of this.stops)
       stop();
-    this.notify();
+    try {
+      this.running?.cancel();
+    }
+    finally {
+      this.notify();
+    }
   }
 
   private onEdit(change: TextChange, side: DiffSide): void {
@@ -161,14 +166,15 @@ export class DocumentDiff implements Disposable {
 
   private start(): void {
     const generation: number = this.generation;
-    const running: AbortController = new AbortController();
+    const running: CancellationTokenSource = new CancellationTokenSource();
     this.running = running;
     const input: LineDiffInput = new LineDiffInput(DocumentDiff.allLines(this.original), DocumentDiff.allLines(this.modified));
-    this.runner.runAsync(this.job, input, running.signal)
+    this.runner.runAsync(this.job, input, running.token)
       .then(t => this.land(generation, LineChangeCodec.decode(t)), () => this.land(generation, null));
   }
 
   private land(generation: number, changes: IReadOnlyList<LineChange> | null): void {
+    this.running?.[Symbol.dispose]();
     this.running = null;
     if (this.disposed)
       return;
