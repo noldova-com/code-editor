@@ -32,6 +32,15 @@ declare module "@noldova/code.editor/models/tokens/stale-state.js" {
   }
 }
 
+declare module "@noldova/code.editor/services/text-search.js" {
+  import type { TextDocument, TextSearch as PublicTextSearch } from "@noldova/code.editor";
+
+  export class TextSearch extends PublicTextSearch {
+    public get searchedCharacters(): number;
+    public columnsIn(document: TextDocument, line: number): readonly number[];
+  }
+}
+
 declare module "@noldova/code.editor/services/platforms.js" {
   export class Platforms {
     public static of(platform: string): string;
