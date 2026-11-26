@@ -302,6 +302,26 @@ export class TextDocumentTests {
     Expect.same([1, 1, 1, 3], pauses);
   }
 
+  @TestMethod
+  public async opensATextInSlicesLettingTheTasksQueuedBeforeEachPauseRunWhenItIsGivenNoPause(): Promise<void> {
+    const text: string = ReferenceText.lines(300_000);
+    let opening: boolean = true;
+    let tasks: number = 0;
+    const task = (): void => {
+      if (!opening)
+        return;
+      tasks++;
+      setImmediate(task);
+    };
+    setImmediate(task);
+
+    const sliced: TextDocument = await TextDocument.fromTextAsync(text);
+    opening = false;
+
+    Assert.areEqual(text, sliced.text());
+    Assert.isTrue(tasks >= 6, `${tasks} tasks ran during the 7 pauses.`);
+  }
+
   private static edit(startLine: number, startColumn: number, endLine: number, endColumn: number, text: string): TextEdit {
     return new TextEdit(TextRange.of(startLine, startColumn, endLine, endColumn), text);
   }
