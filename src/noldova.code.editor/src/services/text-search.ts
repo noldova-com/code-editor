@@ -50,7 +50,7 @@ export class TextSearch {
     for (let match: RegExpExecArray | null = pattern.exec(text); !Object.isNull(match); match = pattern.exec(text)) {
       const end: number = match.index + Required.at(match, 0).length;
       if (end === match.index)
-        pattern.lastIndex = end + ((text.codePointAt(end) ?? 0) >= TextSearch.SURROGATE_PAIR_START ? 2 : 1);
+        pattern.lastIndex = end + ((text.codePointAt(end) ?? 0) >= TextSearch.SURROGATE_PAIR_START ? Resources.surrogatePairLength : 1);
       else
         (columns ??= []).push(match.index, end);
     }

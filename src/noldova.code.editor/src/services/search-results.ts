@@ -50,9 +50,9 @@ export class SearchResults implements Disposable {
   }
 
   public advance(hasTime: () => boolean): boolean {
-    while (!this.complete) {
+    for (let searched: number = 1; !this.complete; searched++) {
       this.columnsOf(this.stale.pop() ?? this.frontier++);
-      if (!hasTime())
+      if (searched % Resources.searchLinesPerClockRead === 0 && !hasTime())
         break;
     }
 

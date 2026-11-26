@@ -19,21 +19,22 @@ import { Expect } from "../support/expect.js";
 @TestClass
 export class SearchResultsTests {
   @TestMethod
-  public searchesOnlyTheLinesAskedAtOnceThenTheRestInBackgroundSlicesOfAtLeastALineEachLineOnce(): void {
-    const document: TextDocument = SearchResultsTests.documentOf(SearchResultsTests.linesOf(10));
+  public searchesOnlyTheLinesAskedAtOnceThenTheRestInBackgroundSlicesReadingTheClockOnceEvery64LinesEachLineOnce(): void {
+    const document: TextDocument = SearchResultsTests.documentOf(SearchResultsTests.linesOf(200));
     const search: CountingSearch = new CountingSearch(new SearchQuery("foo"));
     using results = new SearchResults(document, search);
+    let reads: number = 0;
 
     Expect.same(["3:0-3:3", "3:6-3:9"], SearchResultsTests.spans(results.matchesIn(2, 4)));
     Expect.same([[2, 3], 2, false], [search.searched, results.count, results.complete]);
-    Assert.areEqual(true, results.advance(() => false));
-    Expect.same([2, 3, 0], search.searched);
-    Assert.areEqual(false, results.advance(() => true));
-    Assert.areEqual(false, results.advance(() => true));
+    Assert.areEqual(true, results.advance(() => ++reads < 0));
+    Expect.same([1, 64, 63], [reads, search.searched.length, search.searched.at(-1)]);
+    Assert.areEqual(false, results.advance(() => ++reads > 0));
+    Assert.areEqual(false, results.advance(() => ++reads > 0));
 
-    Expect.same([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], search.searched.toSorted((a, b) => a - b));
-    Expect.same([8, true], [results.count, results.complete]);
-    Expect.same(["9:0-9:3", "9:6-9:9"], SearchResultsTests.spans(results.matchesIn(8, 20)));
+    Expect.same([3, Array.from({ length: 200 }, (_, i) => i)], [reads, search.searched.toSorted((a, b) => a - b)]);
+    Expect.same([134, true], [results.count, results.complete]);
+    Expect.same(["198:0-198:3", "198:8-198:11"], SearchResultsTests.spans(results.matchesIn(198, 300)));
   }
 
   @TestMethod
@@ -87,7 +88,7 @@ export class SearchResultsTests {
     Expect.same(expected(), SearchResultsTests.spans(results.all()));
     Expect.same([10, 11, 12, 13, 1500, 1501, 2003], search.searched.toSorted((a, b) => a - b));
 
-    let budget: number = 100;
+    let budget: number = 2;
     partial.advance(() => --budget > 0);
     document.apply(new List([new TextEdit(TextRange.of(50, 0, 150, 0), "foo")]));
     document.apply(new List([new TextEdit(TextRange.of(2000, 0, 2000, 0), "foo ")]));
