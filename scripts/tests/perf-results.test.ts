@@ -63,7 +63,7 @@ export class PerfResultsTests {
   public async refusesAnEmptyResultsFolderNamingEveryCaseAsync(): Promise<void> {
     const output = await PerfResultsTests.readAsync({});
 
-    Assert.isTrue(output.startsWith("npm run perf found no samples of \"open, plain\", \"open, highlighted\", ") && output.endsWith(", \"diff, 100,000 lines\"."), output);
+    Assert.areEqual("npm run perf found no samples of \"open, plain\", \"open, highlighted\", \"keypress, work before the frame\", \"keypress to paint\", \"scroll, work before the frame\", \"scroll frame\", \"search, first matches\", \"search, last match\", \"diff, 100,000 lines\".", output);
   }
 
   private static async readAsync(files: Readonly<Record<string, string>>): Promise<string> {
