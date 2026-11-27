@@ -168,7 +168,7 @@ The code view's owner draws on it through a public API of marks over its lines a
 The tests count the work rather than time it, so a slower or busier machine can't fail them, and a change that makes the work grow with the document does.
 
 `npm run perf` times the same work in headless Chromium, with Angular in production mode, and fails nothing on a slow figure, only on a case with no samples.
-Measured on 2026-11-26 at 0.0.2, as the median and slowest of each case's samples, in milliseconds:
+Measured on 2026-11-26 at 0.0.2, and the two search cases on 2026-11-27 once the background slices stopped waiting for a timer, as the median and slowest of each case's samples, in milliseconds:
 
 | Case | Samples | Linux, Intel Core i7-11700F, 4 logical processors | macOS, Intel Core i9-8950HK, 12 logical processors | Windows, Intel Core i7-11700F, 4 logical processors |
 |---|---:|---:|---:|---:|
@@ -178,11 +178,11 @@ Measured on 2026-11-26 at 0.0.2, as the median and slowest of each case's sample
 | The same, until the line is painted | 100 | 17 / 18 | 16 / 24 | 17 / 18 |
 | A scroll frame from top to bottom, the work before the frame | 1,500 | 1.6 / 5.9 | 2.0 / 2.8 | 1.5 / 8.8 |
 | The same, until the frame is painted | 1,500 | 17 / 29 | 16 / 26 | 17 / 59 |
-| Searching it for a word on every line, until the first matches show | 5 | 26 / 34 | 19 / 36 | 25 / 28 |
-| The same, until it counts the last match | 5 | 461 / 519 | 745 / 760 | 451 / 564 |
+| Searching it for a word on every line, until the first matches show | 5 | 25 / 29 | 24 / 31 | 24 / 32 |
+| The same, until it counts the last match | 5 | 357 / 423 | 431 / 502 | 386 / 408 |
 | A diff of two 100,000-line documents, one line in a hundred changed, in a worker until the changes show | 5 | 100 / 210 | 111 / 225 | 98 / 196 |
 
-A painted keypress or frame waits for the next frame, about 16.7 ms at 60 Hz, so the work before it is the editor's own cost. The count of a million matches takes under a second, since each line's matches are kept as column pairs and the background search reads the clock after every 64 lines, or sooner once about 4,096 characters were searched, a read costing more than searching a short line; the find bar shows the matches found so far with a plus until then. Opening it builds the document in about 20 to 35 ms and shows its first lines in about 10 more, pausing between slices with a `MessageChannel` task rather than a zero timeout's 4 ms; the slowest highlighted open is the first, while the grammar warms up. The single slow keypresses and frames on Windows are followed in #21.
+A painted keypress or frame waits for the next frame, about 16.7 ms at 60 Hz, so the work before it is the editor's own cost. The count of a million matches takes about half a second, since each line's matches are kept as column pairs and the background search reads the clock after every 64 lines, or sooner once about 4,096 characters were searched, a read costing more than searching a short line; its background slices follow each other as tasks queued through a `MessageChannel`, without a zero timeout's 4 ms between them; the find bar shows the matches found so far with a plus until then. Opening it builds the document in about 20 to 35 ms and shows its first lines in about 10 more, pausing between slices with a `MessageChannel` task rather than a zero timeout's 4 ms; the slowest highlighted open is the first, while the grammar warms up. The single slow keypresses and frames on Windows are followed in #21.
 
 - Opening a 1,000,000-line document builds its tree in one pass, copying each character into one chunk, and an edit in its middle copies only the chunk it reaches, 512 lines: `TextDocumentTests.opensA1000000LineDocumentCopyingEachCharacterIntoOneChunkAndEditsItsMiddleCopyingOnlyTheChunkTheEditReaches`.
   `TextDocument.fromTextAsync` builds the same tree in slices of 500,000 characters and awaits a pause between them, by default a task queued through a `MessageChannel`, since a zero timeout waits at least 4 ms in a browser once nested, longer than a slice takes, or the pause its caller gives, so a long open never holds the page: `TextDocumentTests.opensATextInSlicesLettingTheTasksQueuedBeforeEachPauseRunWhenItIsGivenNoPause` and `CodeEditorComponent` "opens a 1,000,000-line document in slices of under a million characters and shows it, reading only the lines in view".
