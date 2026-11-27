@@ -31,13 +31,21 @@ export class CodeSearch {
     }
   }
 
+  public static searchSliceOf(results: SearchResults | null): SearchResults | null {
+    if (Object.isNull(results))
+      return null;
+    const deadline: number = performance.now() + Resources.statusSliceMilliseconds;
+    results.advance(() => performance.now() < deadline);
+
+    return results;
+  }
+
   public static statusOf(query: SearchQuery | null, results: SearchResults | null, current: TextRange): string {
     if (Object.isNull(query) || String.isNullOrEmpty(query.text))
       return Resources.empty;
     if (Object.isNull(results))
       return Resources.invalidPattern;
-    const deadline: number = performance.now() + Resources.statusSliceMilliseconds;
-    if (results.advance(() => performance.now() < deadline))
+    if (!results.complete)
       return Resources.formatMatches(0, results.count, false);
     if (results.count === 0)
       return Resources.noResults;
