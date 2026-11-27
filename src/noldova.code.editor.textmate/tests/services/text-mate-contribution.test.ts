@@ -21,6 +21,8 @@ import { PatternWatch } from "../support/pattern-watch.js";
 
 @TestClass
 export class TextMateContributionTests {
+  private static readonly PATTERN_CACHE_LIMIT: number = 10000;
+
   @TestMethod
   public registersThe33LanguagesEachFoundByItsIdOrAliasesWithAGrammarForEach(): void {
     const registries = TextMateContributionTests.registries();
@@ -83,6 +85,26 @@ export class TextMateContributionTests {
     const secondCompiled: number = PatternWatch.compiledWhile(() => second.tokenizeLine("const a = 1;", second.initialState));
 
     Expect.same([true, 0], [firstCompiled > 0, secondCompiled]);
+  }
+
+  @TestMethod
+  public async keepsItsCompiledPatternsWithinTheLimitAsEachHeredocDelimiterAddsOneCompilingTheGrammarsOwnOnce(): Promise<void> {
+    const registries = TextMateContributionTests.registries();
+    const shell = Required.value(registries.languages.find("shellscript"));
+    const tokenizer = await new TextMateHighlighter(TextMateLanguages.grammars).createAsync(shell, registries);
+    let state = tokenizer.initialState;
+    const tokenize = (from: number, to: number): void => {
+      for (let heredoc: number = from; heredoc < to; heredoc++)
+        for (const line of [`cat <<END${heredoc}`, "text", `END${heredoc}`])
+          state = tokenizer.tokenizeLine(line, state).endState;
+    };
+
+    tokenize(0, 1);
+    const one: number = PatternWatch.compiledWhile(() => tokenize(1, 2));
+    const thousand: number = PatternWatch.compiledWhile(() => tokenize(2, 1002));
+    const largest: number = PatternWatch.largestWhile(() => tokenize(1002, TextMateContributionTests.PATTERN_CACHE_LIMIT + 500));
+
+    Expect.same([true, one * 1000, TextMateContributionTests.PATTERN_CACHE_LIMIT], [one > 0, thousand, largest]);
   }
 
   @TestMethod

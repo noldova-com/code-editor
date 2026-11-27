@@ -16,6 +16,7 @@ export class Resources {
   public static readonly modifierSeparator: string = ",";
   public static readonly emptyMarkerPart: string = "";
   public static readonly lineLengthLimit: number = 2000;
+  public static readonly patternCacheLimit: number = 10000;
   public static readonly noTimeLimit: number = 0;
   public static readonly lineLengthLimitSetting: string = "editor.maxTokenizationLineLength";
   public static readonly lineLengthLimitDescription: string = "Lines longer than this many characters are not highlighted.";
