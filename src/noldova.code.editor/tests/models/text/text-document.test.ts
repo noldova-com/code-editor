@@ -302,6 +302,46 @@ export class TextDocumentTests {
     Expect.same([1, 1, 1, 3], pauses);
   }
 
+  @TestMethod
+  public async opensATextInSlicesLettingTheTasksQueuedBeforeEachPauseRunWhenItIsGivenNoPause(): Promise<void> {
+    const text: string = ReferenceText.lines(300_000);
+    let opening: boolean = true;
+    let tasks: number = 0;
+    const task = (): void => {
+      if (!opening)
+        return;
+      tasks++;
+      setImmediate(task);
+    };
+    let made: number = 0;
+    let closed: number = 0;
+    const original: typeof MessageChannel = globalThis.MessageChannel;
+    globalThis.MessageChannel = class CountingChannel extends original {
+      public constructor() {
+        super();
+        made++;
+        const close = this.port1.close.bind(this.port1);
+        this.port1.close = (): void => {
+          closed++;
+          close();
+        };
+      }
+    };
+    setImmediate(task);
+    let sliced: TextDocument;
+    try {
+      sliced = await TextDocument.fromTextAsync(text);
+    } finally {
+      opening = false;
+      globalThis.MessageChannel = original;
+    }
+
+    Assert.areEqual(text, sliced.text());
+    Assert.areEqual(7, made);
+    Assert.areEqual(7, closed);
+    Assert.isTrue(tasks >= 6, `${tasks} tasks ran during the 7 pauses.`);
+  }
+
   private static edit(startLine: number, startColumn: number, endLine: number, endColumn: number, text: string): TextEdit {
     return new TextEdit(TextRange.of(startLine, startColumn, endLine, endColumn), text);
   }

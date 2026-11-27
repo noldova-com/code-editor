@@ -1220,18 +1220,21 @@ export declare class TextDocument {
    *
    * @param text The whole content, read as {@link TextDocument.fromText} reads it.
    * @param pause Awaited after each slice of about 500,000 characters of
-   * input and once more before the document is created; for example a
-   * promise that resolves on the next animation frame.
+   * input and once more before the document is created. By default, a task
+   * queued through a `MessageChannel`, in a page, a worker or Node, which
+   * waits only for the tasks queued before it; a zero `setTimeout` waits at
+   * least 4 ms in a browser once nested, longer than a slice takes. A caller
+   * may give its own, such as the next animation frame.
    * @returns A promise of the same document {@link TextDocument.fromText}
    * builds. It rejects when a `pause` promise rejects.
    * @example
    * ```ts
    * import { TextDocument } from "@noldova/code.editor";
    *
-   * const document = await TextDocument.fromTextAsync(large, () => new Promise(resolve => setTimeout(resolve)));
+   * const document = await TextDocument.fromTextAsync(large);
    * ```
    */
-  static fromTextAsync(text: string, pause: () => Promise<void>): Promise<TextDocument>;
+  static fromTextAsync(text: string, pause?: () => Promise<void>): Promise<TextDocument>;
 
   /**
    * The number of successful {@link TextDocument.apply} calls so far,

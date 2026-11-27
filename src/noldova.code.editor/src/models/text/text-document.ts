@@ -45,7 +45,7 @@ export class TextDocument {
     return new TextDocument(step.value);
   }
 
-  public static async fromTextAsync(text: string, pause: () => Promise<void>): Promise<TextDocument> {
+  public static async fromTextAsync(text: string, pause: () => Promise<void> = TextDocument.nextTaskAsync): Promise<TextDocument> {
     const building: Generator<void, LineChunk[]> = TextDocument.chunksOf(text);
     let step: IteratorResult<void, LineChunk[]> = building.next();
     while (step.done !== true) {
@@ -295,6 +295,17 @@ export class TextDocument {
     chunks.push(LineChunk.ofSource(text.slice(chunkStart), starts, textEnds));
 
     return chunks;
+  }
+
+  private static nextTaskAsync(): Promise<void> {
+    return new Promise<void>(resolve => {
+      const channel: MessageChannel = new MessageChannel();
+      channel.port1.onmessage = () => {
+        channel.port1.close();
+        resolve();
+      };
+      channel.port2.postMessage(null);
+    });
   }
 
   private static chunk(texts: readonly string[], endings: readonly string[]): LineChunk[] {

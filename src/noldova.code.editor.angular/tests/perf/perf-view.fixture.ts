@@ -76,7 +76,7 @@ export class PerfView {
   }
 
   public static async openAsync(text: string, tokenizer: ILineTokenizer | null = null): Promise<PerfView> {
-    const document: TextDocument = await TextDocument.fromTextAsync(text, () => new Promise<void>(resolve => setTimeout(resolve)));
+    const document: TextDocument = await TextDocument.fromTextAsync(text);
     const fixture: ComponentFixture<CodeEditorComponent> = TestBed.createComponent(CodeEditorComponent);
     fixture.nativeElement.style.height = PerfView.HEIGHT;
     fixture.nativeElement.style.width = PerfView.WIDTH;
