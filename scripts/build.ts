@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+// npm run build runs this before its npm ci installs @noldova/context.core, so it writes its type checks out.
 import path from "node:path";
 
 import CommandFailedException from "./command-failed.exception.ts";

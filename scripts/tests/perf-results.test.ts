@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -31,8 +31,6 @@ export class PerfResultsTests {
     }
   `;
   private static readonly REMOVAL_RETRIES: number = 5;
-  private static readonly SCRIPT_FILE_NAMES: readonly string[] = ["command-failed.exception.ts", "perf-results.ts"];
-  private static readonly SCRIPTS_FOLDER_NAME: string = "scripts";
   private static readonly RESULTS_FOLDER_NAME: string = "perf";
   private static readonly EDITOR: string = JSON.stringify({
     "open, plain": [2, 1], "open, highlighted": [3], "keypress, work before the frame": [1], "keypress to paint": [16], "scroll, work before the frame": [1],
@@ -69,16 +67,12 @@ export class PerfResultsTests {
   private static async readAsync(files: Readonly<Record<string, string>>): Promise<string> {
     const directory = await mkdtemp(path.join(tmpdir(), PerfResultsTests.DIRECTORY_PREFIX));
     try {
-      const scriptsFolder = path.join(directory, PerfResultsTests.SCRIPTS_FOLDER_NAME);
       const resultsFolder = path.join(directory, PerfResultsTests.RESULTS_FOLDER_NAME);
-      await mkdir(scriptsFolder);
       await mkdir(resultsFolder);
-      for (const name of PerfResultsTests.SCRIPT_FILE_NAMES)
-        await copyFile(path.join(ScriptRunner.SCRIPTS_FOLDER, name), path.join(scriptsFolder, name));
       for (const [name, content] of Object.entries(files))
         await writeFile(path.join(resultsFolder, name), content);
 
-      return await ScriptRunner.runAsync(PerfResultsTests.DRIVER, scriptsFolder, [resultsFolder]);
+      return await ScriptRunner.runAsync(PerfResultsTests.DRIVER, ScriptRunner.SCRIPTS_FOLDER, [resultsFolder]);
     }
     finally {
       await rm(directory, { recursive: true, force: true, maxRetries: PerfResultsTests.REMOVAL_RETRIES });
