@@ -6,6 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import "@noldova/context.core";
+
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -23,15 +25,15 @@ export default class PerfResults {
     const files: readonly string[] = (await fs.readdir(folder)).filter(t => t.endsWith(PerfResults.EXTENSION)).sort();
     for (const file of files) {
       const results: unknown = JSON.parse(await fs.readFile(path.join(folder, file), PerfResults.TEXT_ENCODING));
-      if (typeof results !== "object" || results === null || Array.isArray(results))
+      if (!Object.isPlainObject(results))
         throw new CommandFailedException(PerfResults.notResults(file));
 
       for (const [name, found] of Object.entries(results)) {
         const values: unknown = found;
         const list: number[] | undefined = samples.get(name);
-        if (list === undefined)
+        if (Object.isUndefined(list))
           throw new CommandFailedException(PerfResults.unknownCase(file, name));
-        const numbers: readonly number[] = Array.isArray(values) ? values.filter((t: unknown): t is number => typeof t === "number") : [];
+        const numbers: readonly number[] = Array.isArray(values) ? values.filter((t: unknown): t is number => Object.isNumber(t)) : [];
         if (!Array.isArray(values) || numbers.length !== values.length)
           throw new CommandFailedException(PerfResults.notResults(file));
         list.push(...numbers);

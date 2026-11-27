@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+// npm run build imports this before its npm ci installs @noldova/context.core, so it writes its type checks out.
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
