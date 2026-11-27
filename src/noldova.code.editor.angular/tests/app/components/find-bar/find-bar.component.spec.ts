@@ -8,8 +8,8 @@
 
 import "@noldova/context.core";
 
-import { ConditionValues, CoreCommands, CoreConditions, CoreContribution, EditorRegistries, KeyPress } from "@noldova/code.editor";
-import { describe, expect, it } from "vitest";
+import { ConditionValues, CoreCommands, CoreConditions, CoreContribution, EditorRegistries, KeyPress, SearchResults } from "@noldova/code.editor";
+import { describe, expect, it, type MockInstance, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import { CodeEditorContribution } from "../../../../src/app/services/code-editor-contribution.ts";
@@ -210,5 +210,27 @@ describe("FindBarComponent", () => {
     expect(view.all(".nol-code-editor-match").length).toBeGreaterThan(10);
     expect(Math.max(...typed), `Lines read per keypress: ${typed.join(", ")}`).toBeLessThan(1000);
     expect(Math.max(...pressed), `Lines read per keypress: ${pressed.join(", ")}`).toBeLessThan(1000);
+  }, MILLION_LINE_TEST_TIMEOUT);
+
+  it("searches a slice when the query changes but not when only the selection moves, leaving the rest of the count to the background", async () => {
+    const view: SearchFixture = await SearchFixture.renderAsync(Array.from({ length: 100_000 }, (_, i) => `line ${i}`).join("\n"));
+    await userEvent.keyboard(FIND);
+    await view.stableAsync();
+    const field: HTMLInputElement = view.field("Find");
+    const advances: MockInstance<(hasTime: () => boolean) => boolean> = vi.spyOn(SearchResults.prototype, "advance");
+    try {
+      field.value = "line";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      view.fixture.detectChanges();
+      const typed: number = advances.mock.calls.length;
+      advances.mockClear();
+      view.select(5, 0, 5, 4);
+      view.fixture.detectChanges();
+
+      expect([typed, advances.mock.calls.length]).toEqual([1, 0]);
+    } finally {
+      advances.mockRestore();
+    }
+    await DomWait.untilAsync("the search counts every match", () => view.status === "6 of 100000", MILLION_LINE_COUNT_BOUND);
   }, MILLION_LINE_TEST_TIMEOUT);
 });

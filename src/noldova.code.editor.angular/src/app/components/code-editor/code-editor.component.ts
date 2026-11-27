@@ -72,6 +72,7 @@ export class CodeEditorComponent {
   private readonly query: WritableSignal<SearchQuery | null> = signal<SearchQuery | null>(null);
   private readonly cache: WritableSignal<TokenCache | null> = signal<TokenCache | null>(null);
   private readonly searchProgress: WritableSignal<number> = signal<number>(0);
+  private readonly textVersion: WritableSignal<number> = signal<number>(0);
   private readonly measure: WritableSignal<TextMeasure | null> = signal<TextMeasure | null>(null);
   private readonly scrollTop: WritableSignal<number> = signal<number>(0);
   private readonly viewportHeight: WritableSignal<number> = signal<number>(0);
@@ -155,12 +156,17 @@ export class CodeEditorComponent {
 
     return Object.isNull(search) ? null : new SearchResults(this.document(), search);
   });
+  private readonly searched: Signal<SearchResults | null> = computed(() => {
+    this.textVersion();
+
+    return CodeSearch.searchSliceOf(this.results());
+  }, { equal: () => false });
   protected readonly searchStatus: Signal<string> = computed(() => {
     this.version();
     this.selections();
     this.searchProgress();
 
-    return CodeSearch.statusOf(this.query(), this.results(), CodeSearch.rangeOf(this.session().primary));
+    return CodeSearch.statusOf(this.query(), this.searched(), CodeSearch.rangeOf(this.session().primary));
   });
   protected readonly matchShapes: Signal<readonly MatchShape[]> = computed(() => this.matchShapesOf());
 
@@ -168,7 +174,10 @@ export class CodeEditorComponent {
     const destroyRef: DestroyRef = inject(DestroyRef);
     inject(TokenStyleSheet).apply(inject(CodeEditorRegistries).registries.tokenTypes, Resources.tokenClassPrefix);
     this.keys.listen(t => this.keySequencePending.emit(t));
-    effect(onCleanup => onCleanup(this.document().onChange(() => this.version.update(t => t + 1))));
+    effect(onCleanup => onCleanup(this.document().onChange(() => {
+      this.version.update(t => t + 1);
+      this.textVersion.update(t => t + 1);
+    })));
     effect(onCleanup => {
       const tokenizer: ILineTokenizer | null = this.tokenizer();
       const document: TextDocument = this.document();

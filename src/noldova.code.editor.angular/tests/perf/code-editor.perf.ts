@@ -101,7 +101,7 @@ describe("Code editor on a 1,000,000-line document", () => {
     }
   }, TIMEOUT);
 
-  it("searches it until the first matches show and until it counts the last", async () => {
+  it("searches it until the first matches show, both the work before the frame and until painted, and until it counts the last", async () => {
     for (let run: number = 0; run < RUNS; run++) {
       const view: PerfView = await PerfView.openAsync(PLAIN);
       view.editor.focus();
@@ -114,9 +114,11 @@ describe("Code editor on a 1,000,000-line document", () => {
         field.value = QUERY;
       field.dispatchEvent(new Event("input", { bubbles: true }));
       view.fixture.detectChanges();
-      await view.untilAsync("the first matches show", () => view.all(MATCH).length > 0);
+      view.host.getBoundingClientRect();
+      PerfReport.since("search, work before the frame", start);
+      expect(view.all(MATCH).length).toBeGreaterThan(0);
       await PerfReport.paintAsync();
-      PerfReport.since("search, first matches", start);
+      PerfReport.since("search, first matches painted", start);
       await view.untilAsync("the search counts every match", () => COUNTED.test(status.textContent));
       PerfReport.since("search, last match", start);
       view.destroy();
