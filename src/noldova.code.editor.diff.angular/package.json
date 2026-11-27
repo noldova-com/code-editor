@@ -35,7 +35,7 @@
     "@noldova/context.collections": ">=0.0.18 <0.1.0",
     "@noldova/context.core": ">=0.0.18 <0.1.0",
     "@noldova/context.exceptions": ">=0.0.18 <0.1.0",
-    "@noldova/ui.components.angular": ">=0.0.36 <0.1.0",
+    "@noldova/ui.components.angular": ">=0.0.38 <0.1.0",
     "rxjs": ">=7.8.2 <8.0.0"
   }
 }
