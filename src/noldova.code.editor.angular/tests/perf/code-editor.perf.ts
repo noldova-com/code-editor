@@ -9,10 +9,9 @@
 import "@noldova/context.core";
 
 import { isDevMode } from "@angular/core";
-import { TextPosition, TextSelection } from "@noldova/code.editor";
-import { TextMateTokenizer } from "@noldova/code.editor.textmate";
+import { EditorRegistries, type ILanguageDefinition, Required, TextPosition, TextSelection } from "@noldova/code.editor";
+import { TextMateContribution, TextMateHighlighter, TextMateLanguages } from "@noldova/code.editor.textmate";
 import { List } from "@noldova/context.collections";
-import { createJavaScriptRegexEngine } from "@shikijs/engine-javascript";
 import { afterAll, describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
@@ -50,14 +49,17 @@ describe("Code editor on a 1,000,000-line document", () => {
     }
   }, TIMEOUT);
 
-  it("opens it highlighted until its first lines show colored", async () => {
-    using tokenizer = await TextMateTokenizer.createAsync("typescript", () => import("@shikijs/langs/typescript"), createJavaScriptRegexEngine());
-    for (let run: number = 0; run < RUNS; run++) {
+  it("opens it highlighted until its first lines show colored, each open with a new tokenizer from the highlighter, the first apart", async () => {
+    const registries: EditorRegistries = new EditorRegistries();
+    registries.add(new TextMateContribution());
+    const typescript: ILanguageDefinition = Required.value(registries.languages.find("typescript"));
+    const highlighter: TextMateHighlighter = new TextMateHighlighter(TextMateLanguages.grammars);
+    for (let run: number = 0; run <= RUNS; run++) {
       const start: number = performance.now();
-      const view: PerfView = await PerfView.openAsync(CODE, tokenizer);
+      const view: PerfView = await PerfView.openAsync(CODE, await highlighter.createAsync(typescript, registries));
       await view.untilAsync("the first line is colored", () => view.kindsAt(0).includes(KEYWORD));
       await PerfReport.paintAsync();
-      PerfReport.since("open, highlighted", start);
+      PerfReport.since(run === 0 ? "open, highlighted, first" : "open, highlighted", start);
       view.destroy();
     }
   }, TIMEOUT);

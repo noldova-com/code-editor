@@ -281,8 +281,13 @@ export declare class TextMateHighlighter implements IHighlighter {
    *
    * @param grammars Each language's grammar, by language id.
    * @param rules The scope rules.
-   * @param engine Makes each tokenizer's regular expression engine; Shiki's
-   * JavaScript engine when left out.
+   * @param engine Makes each tokenizer's regular expression engine; when
+   * left out, Shiki's JavaScript engine, its tokenizers sharing one cache of
+   * compiled patterns, so that each pattern compiles once however many
+   * documents the highlighter colors. The cache lives as long as the
+   * highlighter and keeps the 10,000 patterns used most recently, since a
+   * rule that ends on what it began with, such as a shell heredoc, compiles
+   * a pattern for each delimiter.
    */
   constructor(grammars: IReadOnlyDictionary<string, TextMateGrammar>, rules?: IReadOnlyList<ScopeRule>, engine?: () => RegexEngine);
   /**

@@ -18,6 +18,7 @@ import { TextMateGrammarMissingException } from "../exceptions/text-mate-grammar
 import type { ScopeRule } from "../models/scope-rule.js";
 import type { TextMateGrammar } from "../models/text-mate-grammar.js";
 import { Resources } from "../resources.js";
+import { PatternCache } from "./pattern-cache.js";
 import { ScopeRules } from "./scope-rules.js";
 import { TextMateSettings } from "./text-mate-settings.js";
 import { TextMateTokenizer } from "./text-mate-tokenizer.js";
@@ -27,12 +28,13 @@ export class TextMateHighlighter implements IHighlighter {
   private readonly grammars: IReadOnlyDictionary<string, TextMateGrammar>;
   private readonly rules: IReadOnlyList<ScopeRule>;
   private readonly engine: () => RegexEngine;
+  private readonly patterns: PatternCache = new PatternCache(Resources.patternCacheLimit);
 
   public constructor(grammars: IReadOnlyDictionary<string, TextMateGrammar>, rules: IReadOnlyList<ScopeRule> = ScopeRules.defaults,
-    engine: () => RegexEngine = () => createJavaScriptRegexEngine({ forgiving: true })) {
+    engine?: () => RegexEngine) {
     this.grammars = grammars;
     this.rules = rules;
-    this.engine = engine;
+    this.engine = engine ?? (() => createJavaScriptRegexEngine({ forgiving: true, cache: this.patterns }));
   }
 
   public supports(language: ILanguageDefinition): boolean {

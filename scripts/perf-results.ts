@@ -13,7 +13,7 @@ import CommandFailedException from "./command-failed.exception.ts";
 
 export default class PerfResults {
   public static readonly FOLDER: string = "_build/perf";
-  public static readonly CASES: readonly string[] = ["open, plain", "open, highlighted", "keypress, work before the frame", "keypress to paint", "scroll, work before the frame",
+  public static readonly CASES: readonly string[] = ["open, plain", "open, highlighted, first", "open, highlighted", "keypress, work before the frame", "keypress to paint", "scroll, work before the frame",
     "scroll frame", "search, first matches", "search, last match", "diff, 100,000 lines"];
   private static readonly EXTENSION: string = ".json";
   private static readonly TEXT_ENCODING: BufferEncoding = "utf8";

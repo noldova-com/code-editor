@@ -14,9 +14,11 @@ import { Assert, TestClass, TestMethod } from "@noldova/context.testing";
 import { CoreSettings, EditorRegistries, type ILanguageDefinition, LanguageDefinition, Required } from "@noldova/code.editor";
 import { ScopeRule, ScopeRules, TextMateContribution, type TextMateGrammar, TextMateGrammarMissingException, TextMateHighlighter, TextMateLanguages, TextMateOptions, TextMateSettings }
   from "@noldova/code.editor.textmate";
+import { PatternCache } from "@noldova/code.editor.textmate/services/pattern-cache.js";
 
 import { PlainHighlighter } from "../fixtures/plain-highlighter.fixture.js";
 import { Expect } from "../support/expect.js";
+import { PatternWatch } from "../support/pattern-watch.js";
 
 @TestClass
 export class TextMateContributionTests {
@@ -68,6 +70,39 @@ export class TextMateContributionTests {
     Assert.areEqual("plain", registries.highlighters.find(typescript)?.id);
     registries.highlighters.assign("typescript", "textmate");
     Assert.areEqual("textmate", registries.highlighters.find(typescript)?.id);
+  }
+
+  @TestMethod
+  public async compilesEachPatternOnceForEveryTokenizerTheHighlighterMakes(): Promise<void> {
+    const registries = TextMateContributionTests.registries();
+    const typescript = Required.value(registries.languages.find("typescript"));
+    const highlighter = new TextMateHighlighter(TextMateLanguages.grammars);
+    const first = await highlighter.createAsync(typescript, registries);
+    const second = await highlighter.createAsync(typescript, registries);
+
+    const firstCompiled: number = PatternWatch.compiledWhile(() => first.tokenizeLine("const a = 1;", first.initialState));
+    const secondCompiled: number = PatternWatch.compiledWhile(() => second.tokenizeLine("const a = 1;", second.initialState));
+
+    Expect.same([true, 0], [firstCompiled > 0, secondCompiled]);
+  }
+
+  @TestMethod
+  public async compilesOnePatternForEachHeredocDelimiterAndTheGrammarsOwnPatternsOnce(): Promise<void> {
+    const registries = TextMateContributionTests.registries();
+    const shell = Required.value(registries.languages.find("shellscript"));
+    const tokenizer = await new TextMateHighlighter(TextMateLanguages.grammars).createAsync(shell, registries);
+    let state = tokenizer.initialState;
+    const tokenize = (from: number, to: number): void => {
+      for (let heredoc: number = from; heredoc < to; heredoc++)
+        for (const line of [`cat <<END${heredoc}`, "text", `END${heredoc}`])
+          state = tokenizer.tokenizeLine(line, state).endState;
+    };
+
+    tokenize(0, 1);
+    const one: number = PatternWatch.compiledWhile(() => tokenize(1, 2));
+    const into: readonly Map<unknown, unknown>[] = PatternWatch.compiledInto(() => tokenize(2, 202));
+
+    Expect.same([true, one * 200, true], [one > 0, into.length, into.every(t => t instanceof PatternCache)]);
   }
 
   @TestMethod
