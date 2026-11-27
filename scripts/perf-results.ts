@@ -6,10 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import "@noldova/context.core";
+
 import fs from "node:fs/promises";
 import path from "node:path";
-
-import "@noldova/context.core";
 
 import CommandFailedException from "./command-failed.exception.ts";
 
