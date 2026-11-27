@@ -8,15 +8,11 @@
 
 export class PatternWatch {
   public static compiledWhile(work: () => void): number {
-    let compiled: number = 0;
-    PatternWatch.watch(work, () => {
-      compiled++;
-    });
-
-    return compiled;
+    return PatternWatch.compiledInto(work).length;
   }
 
-  private static watch(work: () => void, compiled: () => void): void {
+  public static compiledInto(work: () => void): readonly Map<unknown, unknown>[] {
+    const maps: Map<unknown, unknown>[] = [];
     const get: Map<unknown, unknown>["get"] = Map.prototype.get;
     const set: Map<unknown, unknown>["set"] = Map.prototype.set;
     const fetched: WeakSet<RegExp> = new WeakSet<RegExp>();
@@ -30,7 +26,7 @@ export class PatternWatch {
     Map.prototype.set = function (this: Map<unknown, unknown>, key: unknown, value: unknown): Map<unknown, unknown> {
       const map: Map<unknown, unknown> = set.call(this, key, value);
       if (value instanceof RegExp && !fetched.has(value))
-        compiled();
+        maps.push(this);
 
       return map;
     };
@@ -40,5 +36,7 @@ export class PatternWatch {
       Map.prototype.get = get;
       Map.prototype.set = set;
     }
+
+    return maps;
   }
 }

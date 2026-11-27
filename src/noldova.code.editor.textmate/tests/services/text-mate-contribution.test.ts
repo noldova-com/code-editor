@@ -14,6 +14,7 @@ import { Assert, TestClass, TestMethod } from "@noldova/context.testing";
 import { CoreSettings, EditorRegistries, type ILanguageDefinition, LanguageDefinition, Required } from "@noldova/code.editor";
 import { ScopeRule, ScopeRules, TextMateContribution, type TextMateGrammar, TextMateGrammarMissingException, TextMateHighlighter, TextMateLanguages, TextMateOptions, TextMateSettings }
   from "@noldova/code.editor.textmate";
+import { PatternCache } from "@noldova/code.editor.textmate/services/pattern-cache.js";
 
 import { PlainHighlighter } from "../fixtures/plain-highlighter.fixture.js";
 import { Expect } from "../support/expect.js";
@@ -99,9 +100,9 @@ export class TextMateContributionTests {
 
     tokenize(0, 1);
     const one: number = PatternWatch.compiledWhile(() => tokenize(1, 2));
-    const more: number = PatternWatch.compiledWhile(() => tokenize(2, 202));
+    const into: readonly Map<unknown, unknown>[] = PatternWatch.compiledInto(() => tokenize(2, 202));
 
-    Expect.same([true, one * 200], [one > 0, more]);
+    Expect.same([true, one * 200, true], [one > 0, into.length, into.every(t => t instanceof PatternCache)]);
   }
 
   @TestMethod
