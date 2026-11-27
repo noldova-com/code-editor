@@ -27,12 +27,13 @@ export class TextMateHighlighter implements IHighlighter {
   private readonly grammars: IReadOnlyDictionary<string, TextMateGrammar>;
   private readonly rules: IReadOnlyList<ScopeRule>;
   private readonly engine: () => RegexEngine;
+  private readonly patterns: Map<string, RegExp | Error> = new Map<string, RegExp | Error>();
 
   public constructor(grammars: IReadOnlyDictionary<string, TextMateGrammar>, rules: IReadOnlyList<ScopeRule> = ScopeRules.defaults,
-    engine: () => RegexEngine = () => createJavaScriptRegexEngine({ forgiving: true })) {
+    engine?: () => RegexEngine) {
     this.grammars = grammars;
     this.rules = rules;
-    this.engine = engine;
+    this.engine = engine ?? (() => createJavaScriptRegexEngine({ forgiving: true, cache: this.patterns }));
   }
 
   public supports(language: ILanguageDefinition): boolean {

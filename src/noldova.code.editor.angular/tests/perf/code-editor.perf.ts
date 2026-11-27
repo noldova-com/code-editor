@@ -50,14 +50,14 @@ describe("Code editor on a 1,000,000-line document", () => {
     }
   }, TIMEOUT);
 
-  it("opens it highlighted until its first lines show colored", async () => {
+  it("opens it highlighted until its first lines show colored, the first open with a new tokenizer apart", async () => {
     using tokenizer = await TextMateTokenizer.createAsync("typescript", () => import("@shikijs/langs/typescript"), createJavaScriptRegexEngine());
-    for (let run: number = 0; run < RUNS; run++) {
+    for (let run: number = 0; run <= RUNS; run++) {
       const start: number = performance.now();
       const view: PerfView = await PerfView.openAsync(CODE, tokenizer);
       await view.untilAsync("the first line is colored", () => view.kindsAt(0).includes(KEYWORD));
       await PerfReport.paintAsync();
-      PerfReport.since("open, highlighted", start);
+      PerfReport.since(run === 0 ? "open, highlighted, first" : "open, highlighted", start);
       view.destroy();
     }
   }, TIMEOUT);

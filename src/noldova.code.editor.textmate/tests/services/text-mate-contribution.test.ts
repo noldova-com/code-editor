@@ -17,6 +17,7 @@ import { ScopeRule, ScopeRules, TextMateContribution, type TextMateGrammar, Text
 
 import { PlainHighlighter } from "../fixtures/plain-highlighter.fixture.js";
 import { Expect } from "../support/expect.js";
+import { PatternWatch } from "../support/pattern-watch.js";
 
 @TestClass
 export class TextMateContributionTests {
@@ -68,6 +69,20 @@ export class TextMateContributionTests {
     Assert.areEqual("plain", registries.highlighters.find(typescript)?.id);
     registries.highlighters.assign("typescript", "textmate");
     Assert.areEqual("textmate", registries.highlighters.find(typescript)?.id);
+  }
+
+  @TestMethod
+  public async compilesEachPatternOnceForEveryTokenizerTheHighlighterMakes(): Promise<void> {
+    const registries = TextMateContributionTests.registries();
+    const typescript = Required.value(registries.languages.find("typescript"));
+    const highlighter = new TextMateHighlighter(TextMateLanguages.grammars);
+    const first = await highlighter.createAsync(typescript, registries);
+    const second = await highlighter.createAsync(typescript, registries);
+
+    const firstCompiled: number = PatternWatch.compiledWhile(() => first.tokenizeLine("const a = 1;", first.initialState));
+    const secondCompiled: number = PatternWatch.compiledWhile(() => second.tokenizeLine("const a = 1;", second.initialState));
+
+    Expect.same([true, 0], [firstCompiled > 0, secondCompiled]);
   }
 
   @TestMethod

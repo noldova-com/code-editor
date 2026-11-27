@@ -35,7 +35,7 @@ export class PerfResultsTests {
   private static readonly SCRIPTS_FOLDER_NAME: string = "scripts";
   private static readonly RESULTS_FOLDER_NAME: string = "perf";
   private static readonly EDITOR: string = JSON.stringify({
-    "open, plain": [2, 1], "open, highlighted": [3], "keypress, work before the frame": [1], "keypress to paint": [16], "scroll, work before the frame": [1],
+    "open, plain": [2, 1], "open, highlighted, first": [9], "open, highlighted": [3], "keypress, work before the frame": [1], "keypress to paint": [16], "scroll, work before the frame": [1],
     "scroll frame": [16], "search, first matches": [25], "search, last match": [600]
   });
   private static readonly DIFF: string = JSON.stringify({ "diff, 100,000 lines": [100, 90] });
@@ -44,7 +44,7 @@ export class PerfResultsTests {
   public async readsEachCasesSamplesFromEveryResultsFileInTheListsOrderAsync(): Promise<void> {
     const output = await PerfResultsTests.readAsync({ "diff-editor.json": PerfResultsTests.DIFF, "code-editor.json": PerfResultsTests.EDITOR, "notes.txt": "skipped" });
 
-    Assert.areEqual(JSON.stringify([["open, plain", [2, 1]], ["open, highlighted", [3]], ["keypress, work before the frame", [1]], ["keypress to paint", [16]],
+    Assert.areEqual(JSON.stringify([["open, plain", [2, 1]], ["open, highlighted, first", [9]], ["open, highlighted", [3]], ["keypress, work before the frame", [1]], ["keypress to paint", [16]],
       ["scroll, work before the frame", [1]], ["scroll frame", [16]], ["search, first matches", [25]], ["search, last match", [600]], ["diff, 100,000 lines", [100, 90]]]), output);
   }
 
@@ -63,7 +63,7 @@ export class PerfResultsTests {
   public async refusesAnEmptyResultsFolderNamingEveryCaseAsync(): Promise<void> {
     const output = await PerfResultsTests.readAsync({});
 
-    Assert.areEqual("npm run perf found no samples of \"open, plain\", \"open, highlighted\", \"keypress, work before the frame\", \"keypress to paint\", \"scroll, work before the frame\", \"scroll frame\", \"search, first matches\", \"search, last match\", \"diff, 100,000 lines\".", output);
+    Assert.areEqual("npm run perf found no samples of \"open, plain\", \"open, highlighted, first\", \"open, highlighted\", \"keypress, work before the frame\", \"keypress to paint\", \"scroll, work before the frame\", \"scroll frame\", \"search, first matches\", \"search, last match\", \"diff, 100,000 lines\".", output);
   }
 
   private static async readAsync(files: Readonly<Record<string, string>>): Promise<string> {
