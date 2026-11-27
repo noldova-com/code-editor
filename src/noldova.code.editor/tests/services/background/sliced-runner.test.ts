@@ -12,6 +12,7 @@ import { type CancellationToken, CancellationTokenSource, OperationCanceledExcep
 import { SlicedRunner } from "@noldova/code.editor";
 
 import { CountJob } from "../../fixtures/count-job.fixture.js";
+import { ChannelWatch } from "../../support/channel-watch.js";
 import { Expect } from "../../support/expect.js";
 
 @TestClass
@@ -37,6 +38,17 @@ export class SlicedRunnerTests {
 
     Assert.areEqual(1, job.ran);
     Expect.same([6, 3], [await running, job.ran]);
+  }
+
+  @TestMethod
+  public async yieldsBetweenSlicesThroughAMessageChannelTaskLettingTheTasksQueuedBeforeEachYieldRun(): Promise<void> {
+    const job: CountJob = new CountJob();
+    const watch: ChannelWatch = new ChannelWatch();
+
+    const output: number = await watch.whileAsync(() => new SlicedRunner(0).runAsync(job, 3));
+
+    Expect.same([6, 3, 3, 3], [output, job.ran, watch.made, watch.closed]);
+    Assert.isTrue(watch.tasks >= 2, `${watch.tasks} tasks ran during the 3 yields.`);
   }
 
   @TestMethod

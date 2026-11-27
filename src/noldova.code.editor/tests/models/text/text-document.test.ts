@@ -14,6 +14,7 @@ import { EditsOverlapException, TextDocument, TextEdit, TextPosition, TextRange 
 
 import { ReferenceText } from "../../fixtures/reference-text.fixture.js";
 import { SeededRandom } from "../../fixtures/seeded-random.fixture.js";
+import { ChannelWatch } from "../../support/channel-watch.js";
 import { ChunkWatch } from "../../support/chunk-watch.js";
 import { Expect } from "../../support/expect.js";
 
@@ -305,41 +306,14 @@ export class TextDocumentTests {
   @TestMethod
   public async opensATextInSlicesLettingTheTasksQueuedBeforeEachPauseRunWhenItIsGivenNoPause(): Promise<void> {
     const text: string = ReferenceText.lines(300_000);
-    let opening: boolean = true;
-    let tasks: number = 0;
-    const task = (): void => {
-      if (!opening)
-        return;
-      tasks++;
-      setImmediate(task);
-    };
-    let made: number = 0;
-    let closed: number = 0;
-    const original: typeof MessageChannel = globalThis.MessageChannel;
-    globalThis.MessageChannel = class CountingChannel extends original {
-      public constructor() {
-        super();
-        made++;
-        const close = this.port1.close.bind(this.port1);
-        this.port1.close = (): void => {
-          closed++;
-          close();
-        };
-      }
-    };
-    setImmediate(task);
-    let sliced: TextDocument;
-    try {
-      sliced = await TextDocument.fromTextAsync(text);
-    } finally {
-      opening = false;
-      globalThis.MessageChannel = original;
-    }
+    const watch: ChannelWatch = new ChannelWatch();
+
+    const sliced: TextDocument = await watch.whileAsync(() => TextDocument.fromTextAsync(text));
 
     Assert.areEqual(text, sliced.text());
-    Assert.areEqual(7, made);
-    Assert.areEqual(7, closed);
-    Assert.isTrue(tasks >= 6, `${tasks} tasks ran during the 7 pauses.`);
+    Assert.areEqual(7, watch.made);
+    Assert.areEqual(7, watch.closed);
+    Assert.isTrue(watch.tasks >= 6, `${watch.tasks} tasks ran during the 7 pauses.`);
   }
 
   private static edit(startLine: number, startColumn: number, endLine: number, endColumn: number, text: string): TextEdit {
