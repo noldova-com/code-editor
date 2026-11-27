@@ -13,6 +13,7 @@ import { CancellationToken } from "@noldova/context.threading";
 import type { IBackgroundJob } from "../../interfaces/background/i-background-job.js";
 import type { IBackgroundRunner } from "../../interfaces/background/i-background-runner.js";
 import { Resources } from "../../resources.js";
+import { NextTask } from "./next-task.js";
 
 export class SlicedRunner implements IBackgroundRunner {
   public static readonly defaultSliceMilliseconds: number = Resources.defaultSliceMilliseconds;
@@ -33,12 +34,8 @@ export class SlicedRunner implements IBackgroundRunner {
         step = steps.next();
       if (step.done === true)
         return step.value;
-      await SlicedRunner.yieldAsync();
+      await NextTask.waitAsync();
       cancellationToken.throwIfCancellationRequested();
     }
-  }
-
-  private static async yieldAsync(): Promise<void> {
-    await new Promise<void>(resolve => setTimeout(resolve));
   }
 }

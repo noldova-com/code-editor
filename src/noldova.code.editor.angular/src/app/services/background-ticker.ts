@@ -15,27 +15,30 @@ import { Resources } from "../../resources.ts";
 export class BackgroundTicker implements Disposable {
   private readonly step: (hasTime: () => boolean) => boolean;
   private readonly stop: () => void;
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private readonly channel: MessageChannel = new MessageChannel();
+  private scheduled: boolean = false;
 
   public constructor(document: TextDocument, step: (hasTime: () => boolean) => boolean) {
     this.step = step;
+    this.channel.port1.onmessage = () => this.tick();
     this.stop = document.onChange(() => this.schedule());
     this.schedule();
   }
 
   public [Symbol.dispose](): void {
     this.stop();
-    if (!Object.isNull(this.timer))
-      clearTimeout(this.timer);
+    this.channel.port1.close();
   }
 
   private schedule(): void {
-    if (Object.isNull(this.timer))
-      this.timer = setTimeout(() => this.tick());
+    if (this.scheduled)
+      return;
+    this.scheduled = true;
+    this.channel.port2.postMessage(null);
   }
 
   private tick(): void {
-    this.timer = null;
+    this.scheduled = false;
     const deadline: number = performance.now() + Resources.backgroundSliceMilliseconds;
     if (this.step(() => performance.now() < deadline))
       this.schedule();

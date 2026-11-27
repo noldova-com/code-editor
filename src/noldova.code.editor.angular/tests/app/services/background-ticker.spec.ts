@@ -40,6 +40,43 @@ describe("BackgroundTicker", () => {
     expect(slices).toEqual([true, true, true, true]);
   });
 
+  it("ticks through one MessageChannel of its own, closing it when disposed", async () => {
+    const original: typeof MessageChannel = globalThis.MessageChannel;
+    const channels: MessageChannel[] = [];
+    let closed: number = 0;
+    globalThis.MessageChannel = class CountingChannel extends original {
+      public constructor() {
+        super();
+        channels.push(this);
+        const close = this.port1.close.bind(this.port1);
+        this.port1.close = (): void => {
+          closed++;
+          close();
+        };
+      }
+    };
+    const slices: boolean[] = [];
+    let left: number = 3;
+    const finished: PromiseWithResolvers<void> = Promise.withResolvers<void>();
+    let ticker: BackgroundTicker;
+    try {
+      ticker = new BackgroundTicker(TextDocument.fromText("text"), hasTime => {
+        slices.push(hasTime());
+        if (--left === 0)
+          finished.resolve();
+
+        return left > 0;
+      });
+    }
+    finally {
+      globalThis.MessageChannel = original;
+    }
+    await finished.promise;
+    ticker[Symbol.dispose]();
+
+    expect([channels.length, slices, closed]).toEqual([1, [true, true, true], 1]);
+  });
+
   it("stops at once when disposed before its first slice", async () => {
     const document: TextDocument = TextDocument.fromText("text");
     const slices: boolean[] = [];

@@ -128,9 +128,11 @@ export declare class WorkerRunner implements IBackgroundRunner, Disposable {
 }
 
 /**
- * Runs a step of background work after each edit to a document, in setTimeout
- * slices, until the step says it is done; for work such as tokenizing that
- * follows a document a view doesn't show.
+ * Runs a step of background work after each edit to a document, in 5 ms
+ * slices, each a task queued through a `MessageChannel` of its own so that
+ * input and painting run between slices without a zero timeout's 4 ms wait,
+ * until the step says it is done; for work such as tokenizing that follows a
+ * document a view doesn't show.
  *
  * @example
  * ```ts

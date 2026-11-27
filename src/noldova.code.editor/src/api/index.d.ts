@@ -2885,7 +2885,10 @@ export declare class Required {
  *
  * @remarks
  * Each slice runs the job's steps until a step ends past the slice's time,
- * then waits for the next turn of the event loop. A single step that takes
+ * then waits for the tasks already queued, such as input and painting,
+ * through a task queued with a `MessageChannel`, in a page, a worker or Node;
+ * a zero `setTimeout` would wait at least 4 ms in a browser once nested,
+ * close to a slice's own time. A single step that takes
  * longer, such as a diff algorithm's one call, holds the thread for its whole
  * time; in the browser a worker runner keeps such work off the page.
  *

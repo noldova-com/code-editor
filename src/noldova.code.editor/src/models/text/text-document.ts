@@ -13,6 +13,7 @@ import { ArgumentException, ArgumentOutOfRangeException } from "@noldova/context
 
 import { EditsOverlapException } from "../../exceptions/edits-overlap.exception.js";
 import { Resources } from "../../resources.js";
+import { NextTask } from "../../services/background/next-task.js";
 import { Required } from "../../services/required.js";
 import { AppliedEdit } from "../editing/applied-edit.js";
 import { LineChunk } from "./line-chunk.js";
@@ -45,7 +46,7 @@ export class TextDocument {
     return new TextDocument(step.value);
   }
 
-  public static async fromTextAsync(text: string, pause: () => Promise<void> = TextDocument.nextTaskAsync): Promise<TextDocument> {
+  public static async fromTextAsync(text: string, pause: () => Promise<void> = NextTask.waitAsync): Promise<TextDocument> {
     const building: Generator<void, LineChunk[]> = TextDocument.chunksOf(text);
     let step: IteratorResult<void, LineChunk[]> = building.next();
     while (step.done !== true) {
@@ -295,17 +296,6 @@ export class TextDocument {
     chunks.push(LineChunk.ofSource(text.slice(chunkStart), starts, textEnds));
 
     return chunks;
-  }
-
-  private static nextTaskAsync(): Promise<void> {
-    return new Promise<void>(resolve => {
-      const channel: MessageChannel = new MessageChannel();
-      channel.port1.onmessage = () => {
-        channel.port1.close();
-        resolve();
-      };
-      channel.port2.postMessage(null);
-    });
   }
 
   private static chunk(texts: readonly string[], endings: readonly string[]): LineChunk[] {
